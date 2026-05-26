@@ -8,7 +8,7 @@ import {
   useMangoStore,
 } from "@/lib/mango-data";
 
-export const Route = createFileRoute("/perfil")({
+export const Route = createFileRoute("/_authenticated/perfil")({
   component: Perfil,
 });
 

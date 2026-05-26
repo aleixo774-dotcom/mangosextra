@@ -11,7 +11,7 @@ import {
   useMangoStore,
 } from "@/lib/mango-data";
 
-export const Route = createFileRoute("/indicacao/$id")({
+export const Route = createFileRoute("/_authenticated/indicacao/$id")({
   component: Detail,
   notFoundComponent: () => (
     <MobileShell>

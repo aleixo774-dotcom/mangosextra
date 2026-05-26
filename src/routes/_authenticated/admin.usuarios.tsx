@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Circle, Search, UserCheck, UserX, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 
-export const Route = createFileRoute("/admin/usuarios")({
+export const Route = createFileRoute("/_authenticated/admin/usuarios")({
   component: AdminUsuarios,
 });
 
