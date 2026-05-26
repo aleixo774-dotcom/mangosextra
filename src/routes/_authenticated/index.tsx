@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/")({
 });
 
 function Home() {
-  const { profile, isAdmin } = useAuth();
+  const { profile, isAdmin, isStaff } = useAuth();
   const { data: referrals } = useReferrals();
 
   const points = profile?.points ?? 0;
@@ -98,7 +98,7 @@ function Home() {
 
         <div className="mt-6 flex items-center justify-between">
           <h2 className="font-display text-base font-bold">
-            {isAdmin ? "Todas as indicações" : "Suas indicações"}
+            {isStaff ? "Todas as indicações" : "Suas indicações"}
           </h2>
           <span className="text-xs text-muted-foreground">{referrals.length} no total</span>
         </div>
