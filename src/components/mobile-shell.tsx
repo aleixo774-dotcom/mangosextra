@@ -26,11 +26,12 @@ function BottomNav() {
         {items.map((it) => {
           const active = it.to === "/" ? path === "/" : path.startsWith(it.to);
           const Icon = it.icon;
+          const to = it.to as "/";
           if (it.primary) {
             return (
               <li key={it.to} className="flex justify-center">
                 <Link
-                  to={it.to}
+                  to={to}
                   className="-mt-8 flex h-14 w-14 items-center justify-center rounded-full bg-mango text-mango-foreground shadow-lg shadow-mango/40 ring-4 ring-background transition active:scale-95"
                   aria-label={it.label}
                 >
@@ -42,7 +43,7 @@ function BottomNav() {
           return (
             <li key={it.to}>
               <Link
-                to={it.to}
+                to={to}
                 className={cn(
                   "flex flex-col items-center gap-1 py-1 text-[11px] font-medium transition-colors",
                   active ? "text-forest" : "text-muted-foreground",
