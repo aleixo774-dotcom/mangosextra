@@ -21,19 +21,19 @@ const COLS: Status[] = [
 ];
 
 function Admin() {
-  const { isAdmin, loading } = useAuth();
+  const { isAdmin, isStaff, loading } = useAuth();
   const nav = useNavigate();
   const { data: referrals } = useReferrals();
   const [col, setCol] = useState(0);
 
   useEffect(() => {
-    if (!loading && !isAdmin) {
+    if (!loading && !isStaff) {
       toast.error("Acesso restrito");
       nav({ to: "/" });
     }
-  }, [isAdmin, loading, nav]);
+  }, [isStaff, loading, nav]);
 
-  if (!isAdmin) return null;
+  if (!isStaff) return null;
 
   const status = COLS[col];
   const items = referrals.filter((r) => r.status === status);
