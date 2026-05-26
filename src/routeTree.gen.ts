@@ -18,6 +18,7 @@ import { Route as AuthenticatedNovaRouteImport } from './routes/_authenticated/n
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedIndicacaoIdRouteImport } from './routes/_authenticated/indicacao.$id'
 import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin.usuarios'
+import { Route as AuthenticatedAdminNotificacoesRouteImport } from './routes/_authenticated/admin.notificacoes'
 import { Route as AuthenticatedAdminConsultoresNovoRouteImport } from './routes/_authenticated/admin.consultores.novo'
 
 const LoginRoute = LoginRouteImport.update({
@@ -66,6 +67,12 @@ const AuthenticatedAdminUsuariosRoute =
     path: '/admin/usuarios',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminNotificacoesRoute =
+  AuthenticatedAdminNotificacoesRouteImport.update({
+    id: '/admin/notificacoes',
+    path: '/admin/notificacoes',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminConsultoresNovoRoute =
   AuthenticatedAdminConsultoresNovoRouteImport.update({
     id: '/admin/consultores/novo',
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/nova': typeof AuthenticatedNovaRoute
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/indicacao/$id': typeof AuthenticatedIndicacaoIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
   '/nova': typeof AuthenticatedNovaRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/': typeof AuthenticatedIndexRoute
+  '/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/indicacao/$id': typeof AuthenticatedIndicacaoIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -103,6 +112,7 @@ export interface FileRoutesById {
   '/_authenticated/nova': typeof AuthenticatedNovaRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/_authenticated/indicacao/$id': typeof AuthenticatedIndicacaoIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/nova'
     | '/perfil'
+    | '/admin/notificacoes'
     | '/admin/usuarios'
     | '/indicacao/$id'
     | '/admin/'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/nova'
     | '/perfil'
     | '/'
+    | '/admin/notificacoes'
     | '/admin/usuarios'
     | '/indicacao/$id'
     | '/admin'
@@ -139,6 +151,7 @@ export interface FileRouteTypes {
     | '/_authenticated/nova'
     | '/_authenticated/perfil'
     | '/_authenticated/'
+    | '/_authenticated/admin/notificacoes'
     | '/_authenticated/admin/usuarios'
     | '/_authenticated/indicacao/$id'
     | '/_authenticated/admin/'
@@ -216,6 +229,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsuariosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/notificacoes': {
+      id: '/_authenticated/admin/notificacoes'
+      path: '/admin/notificacoes'
+      fullPath: '/admin/notificacoes'
+      preLoaderRoute: typeof AuthenticatedAdminNotificacoesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/consultores/novo': {
       id: '/_authenticated/admin/consultores/novo'
       path: '/admin/consultores/novo'
@@ -230,6 +250,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedNovaRoute: typeof AuthenticatedNovaRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedAdminNotificacoesRoute: typeof AuthenticatedAdminNotificacoesRoute
   AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
   AuthenticatedIndicacaoIdRoute: typeof AuthenticatedIndicacaoIdRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -240,6 +261,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedNovaRoute: AuthenticatedNovaRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedAdminNotificacoesRoute: AuthenticatedAdminNotificacoesRoute,
   AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
   AuthenticatedIndicacaoIdRoute: AuthenticatedIndicacaoIdRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
