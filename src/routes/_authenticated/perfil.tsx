@@ -49,9 +49,9 @@ function Perfil() {
             <p className="truncate font-display text-lg font-bold">{profile?.name ?? "Indicador"}</p>
             <p className="truncate text-sm text-muted-foreground">{user?.email}</p>
             {isAdmin && (
-              <span className="mt-1 inline-block rounded-full bg-coral/15 px-2 py-0.5 text-[10px] font-bold text-coral">
-                👑 ADMIN
-              </span>
+              <Link to="/admin" className="mt-1 inline-block rounded-full bg-coral/15 px-2 py-0.5 text-[10px] font-bold text-coral">
+                👑 ADMIN — abrir painel
+              </Link>
             )}
           </div>
         </div>
