@@ -5,9 +5,20 @@ import { useAuth } from "@/hooks/use-auth";
 
 export function MobileShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-background pb-24">
-      {children}
-      <BottomNav />
+    <div className="min-h-screen w-full bg-gradient-to-br from-forest via-forest/95 to-charcoal sm:py-6 lg:py-10">
+      {/* Decorative background dots — only visible on larger screens */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 hidden sm:block"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 20% 30%, color-mix(in oklab, var(--mango) 18%, transparent) 0%, transparent 45%), radial-gradient(circle at 80% 70%, color-mix(in oklab, var(--coral) 15%, transparent) 0%, transparent 50%)",
+        }}
+      />
+      <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background pb-24 shadow-2xl shadow-black/40 sm:min-h-[min(900px,calc(100vh-3rem))] sm:rounded-[2rem] sm:ring-1 sm:ring-white/10">
+        {children}
+        <BottomNav />
+      </div>
     </div>
   );
 }
@@ -24,7 +35,7 @@ function BottomNav() {
   const cols = items.length === 4 ? "grid-cols-4" : "grid-cols-3";
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md border-t border-border bg-card/95 backdrop-blur">
+    <nav className="absolute inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur sm:rounded-b-[2rem]">
       <ul className={cn("grid items-end px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2", cols)}>
         {items.map((it) => {
           const active = it.to === "/" ? path === "/" : path.startsWith(it.to);
