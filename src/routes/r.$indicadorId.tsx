@@ -29,7 +29,7 @@ function PublicReferralPage() {
 
   const { data: indicador, isLoading } = useQuery({
     queryKey: ["public-indicador", indicadorId],
-    queryFn: () => fetchIndicador({ data: { indicadorId } }),
+    queryFn: () => fetchIndicador({ data: { identifier: indicadorId } }),
   });
 
   const [name, setName] = useState("");
