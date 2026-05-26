@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ChevronLeft, ChevronRight, XCircle } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronRight, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MobileShell } from "@/components/mobile-shell";
 import {
@@ -20,11 +20,21 @@ const COLS: Status[] = [
   "recebido", "em_analise", "em_simulacao", "aprovado", "contrato", "pago", "nao_aprovado",
 ];
 
+const STATUS_COLOR: Record<Status, string> = {
+  recebido: "bg-mango/20 text-[color:oklch(0.35_0.1_125)] border-mango/40",
+  em_analise: "bg-coral/15 text-coral border-coral/30",
+  em_simulacao: "bg-forest/10 text-forest border-forest/30",
+  aprovado: "bg-money/15 text-[color:oklch(0.35_0.12_145)] border-money/30",
+  contrato: "bg-forest/15 text-forest border-forest/40",
+  pago: "bg-money/25 text-[color:oklch(0.3_0.13_145)] border-money/50",
+  nao_aprovado: "bg-destructive/10 text-destructive border-destructive/30",
+};
+
 function Admin() {
   const { isAdmin, isStaff, loading } = useAuth();
   const nav = useNavigate();
   const { data: referrals } = useReferrals();
-  const [col, setCol] = useState(0);
+  const [open, setOpen] = useState<Status | null>("recebido");
 
   useEffect(() => {
     if (!loading && !isStaff) {
@@ -34,9 +44,6 @@ function Admin() {
   }, [isStaff, loading, nav]);
 
   if (!isStaff) return null;
-
-  const status = COLS[col];
-  const items = referrals.filter((r) => r.status === status);
 
   const totalLeads = referrals.length;
   const aprovadas = referrals.filter((r) => ["aprovado","contrato","pago"].includes(r.status)).length;
@@ -59,7 +66,7 @@ function Admin() {
   async function reprovar(id: string) {
     try {
       await updateReferralStatus(id, "nao_aprovado");
-      toast("Lead marcado como não aprovado agora");
+      toast("Lead marcado como não aprovado");
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Erro");
     }
@@ -83,7 +90,7 @@ function Admin() {
           </Link>
           <div className="flex-1">
             <p className="text-xs uppercase tracking-widest text-mango">Painel Admin</p>
-            <h1 className="font-display text-xl font-bold">Kanban de Leads</h1>
+            <h1 className="font-display text-xl font-bold">Indicações por status</h1>
           </div>
           {isAdmin && (
             <Link to="/admin/usuarios" className="rounded-full bg-mango px-3 py-1.5 text-[11px] font-bold text-mango-foreground shadow-md shadow-mango/30">
@@ -100,79 +107,85 @@ function Admin() {
         </div>
       </header>
 
-      <div className="sticky top-0 z-30 -mt-3 rounded-t-3xl bg-background px-3 pb-2 pt-4 shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <button onClick={() => setCol(Math.max(0, col - 1))} disabled={col === 0} className="flex h-9 w-9 items-center justify-center rounded-full border border-border disabled:opacity-30">
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <div className="flex-1 text-center">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Coluna {col + 1} de {COLS.length}</p>
-            <p className="font-display text-base font-bold text-forest">{STATUS_LABEL[status]} · {items.length}</p>
-          </div>
-          <button onClick={() => setCol(Math.min(COLS.length - 1, col + 1))} disabled={col === COLS.length - 1} className="flex h-9 w-9 items-center justify-center rounded-full border border-border disabled:opacity-30">
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="mt-3 flex gap-1">
-          {COLS.map((_, i) => (
-            <button key={i} onClick={() => setCol(i)} className={`h-1.5 flex-1 rounded-full ${
-              i === col ? COLS[i] === "nao_aprovado" ? "bg-destructive" : "bg-mango" : "bg-border"
-            }`} aria-label={`Coluna ${i + 1}`} />
-          ))}
-        </div>
-      </div>
-
-      <main className="flex-1 px-4 pt-3">
-        {items.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
-            Nenhum lead nesta coluna.
-          </div>
-        )}
+      <main className="-mt-3 flex-1 rounded-t-3xl bg-background px-4 pt-5">
         <ul className="space-y-3">
-          {items.map((r) => {
-            const pts = pointsForStatus(r.status);
-            const isReprovado = r.status === "nao_aprovado";
-            const isPago = r.status === "pago";
+          {COLS.map((status) => {
+            const items = referrals.filter((r) => r.status === status);
+            const isOpen = open === status;
             return (
-              <li key={r.id} className="rounded-2xl bg-card p-4 shadow-sm">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mango/20 font-display text-sm font-bold text-forest">
-                    {r.client_name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{r.client_name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{r.product}</p>
-                    {r.indicador_name && (
-                      <p className="truncate text-[10px] text-forest/70">por {r.indicador_name}</p>
-                    )}
-                    <p className={`mt-1 text-xs font-semibold ${pts > 0 ? "text-money" : "text-muted-foreground"}`}>
-                      {pts > 0 ? `+${pts} pts` : "—"}
-                    </p>
-                  </div>
-                  <Link to="/indicacao/$id" params={{ id: r.id }} className="text-[11px] font-semibold text-forest underline">
-                    Ver
-                  </Link>
-                </div>
+              <li key={status} className={`rounded-2xl border bg-card shadow-sm ${STATUS_COLOR[status]}`}>
+                <button
+                  onClick={() => setOpen(isOpen ? null : status)}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left"
+                >
+                  {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  <span className="flex-1 font-display text-sm font-bold uppercase tracking-wider">
+                    {STATUS_LABEL[status]}
+                  </span>
+                  <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-white/70 px-2 font-display text-sm font-bold">
+                    {items.length}
+                  </span>
+                </button>
 
-                {isReprovado ? (
-                  <div className="mt-3 flex gap-2">
-                    <button onClick={() => reativar(r.id)} className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-forest py-2 text-xs font-semibold text-forest-foreground">
-                      Reativar lead
-                    </button>
-                  </div>
-                ) : (
-                  <div className="mt-3 flex gap-2">
-                    <button onClick={() => move(r.id, r.status, -1)} disabled={STATUS_ORDER.indexOf(r.status) === 0} className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-border py-2 text-xs font-semibold disabled:opacity-40">
-                      <ChevronLeft className="h-3.5 w-3.5" /> Voltar
-                    </button>
-                    {!isPago && (
-                      <button onClick={() => reprovar(r.id)} className="flex items-center justify-center gap-1 rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs font-semibold text-destructive" aria-label="Marcar como não aprovado">
-                        <XCircle className="h-3.5 w-3.5" />
-                      </button>
+                {isOpen && (
+                  <div className="border-t border-current/10 bg-background/60 px-3 pb-3 pt-2">
+                    {items.length === 0 ? (
+                      <p className="py-6 text-center text-xs text-muted-foreground">
+                        Nenhum lead aqui
+                      </p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {items.map((r) => {
+                          const pts = pointsForStatus(r.status);
+                          const isReprovado = r.status === "nao_aprovado";
+                          const isPago = r.status === "pago";
+                          return (
+                            <li key={r.id} className="rounded-xl bg-card p-3 shadow-sm">
+                              <div className="flex items-start gap-3">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-mango/20 font-display text-xs font-bold text-forest">
+                                  {r.client_name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm font-semibold text-foreground">{r.client_name}</p>
+                                  <p className="truncate text-[11px] text-muted-foreground">{r.product}</p>
+                                  {r.indicador_name && (
+                                    <p className="truncate text-[10px] text-forest/70">por {r.indicador_name}</p>
+                                  )}
+                                </div>
+                                <div className="flex flex-col items-end gap-1">
+                                  <Link to="/indicacao/$id" params={{ id: r.id }} className="text-[11px] font-semibold text-forest underline">
+                                    Ver
+                                  </Link>
+                                  {pts > 0 && (
+                                    <span className="text-[10px] font-semibold text-money">+{pts}pts</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {isReprovado ? (
+                                <button onClick={() => reativar(r.id)} className="mt-2 w-full rounded-lg bg-forest py-1.5 text-[11px] font-semibold text-forest-foreground">
+                                  Reativar
+                                </button>
+                              ) : (
+                                <div className="mt-2 flex gap-1.5">
+                                  <button onClick={() => move(r.id, r.status, -1)} disabled={STATUS_ORDER.indexOf(r.status) === 0} className="flex-1 rounded-lg border border-border py-1.5 text-[11px] font-semibold disabled:opacity-40">
+                                    ← Voltar
+                                  </button>
+                                  {!isPago && (
+                                    <button onClick={() => reprovar(r.id)} className="rounded-lg border border-destructive/30 bg-destructive/5 px-2 py-1.5 text-destructive" aria-label="Reprovar">
+                                      <XCircle className="h-3.5 w-3.5" />
+                                    </button>
+                                  )}
+                                  <button onClick={() => move(r.id, r.status, 1)} disabled={STATUS_ORDER.indexOf(r.status) === STATUS_ORDER.length - 1} className="flex-1 rounded-lg bg-forest py-1.5 text-[11px] font-semibold text-forest-foreground disabled:opacity-40">
+                                    Avançar →
+                                  </button>
+                                </div>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
                     )}
-                    <button onClick={() => move(r.id, r.status, 1)} disabled={STATUS_ORDER.indexOf(r.status) === STATUS_ORDER.length - 1} className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-forest py-2 text-xs font-semibold text-forest-foreground disabled:opacity-40">
-                      Avançar <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
                   </div>
                 )}
               </li>
