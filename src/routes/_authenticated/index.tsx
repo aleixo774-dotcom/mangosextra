@@ -125,6 +125,9 @@ function Home() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold">{r.client_name}</p>
                     <p className="truncate text-xs text-muted-foreground">{r.product}</p>
+                    {isStaff && r.indicador_name && (
+                      <p className="truncate text-[10px] text-forest/70">por {r.indicador_name}</p>
+                    )}
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <StatusPill status={r.status} />
