@@ -85,9 +85,11 @@ function Admin() {
             <p className="text-xs uppercase tracking-widest text-mango">Painel Admin</p>
             <h1 className="font-display text-xl font-bold">Kanban de Leads</h1>
           </div>
-          <Link to="/admin/usuarios" className="rounded-full bg-mango px-3 py-1.5 text-[11px] font-bold text-mango-foreground shadow-md shadow-mango/30">
-            Usuários
-          </Link>
+          {isAdmin && (
+            <Link to="/admin/usuarios" className="rounded-full bg-mango px-3 py-1.5 text-[11px] font-bold text-mango-foreground shadow-md shadow-mango/30">
+              Usuários
+            </Link>
+          )}
         </div>
 
         <div className="mt-5 grid grid-cols-4 gap-2">
