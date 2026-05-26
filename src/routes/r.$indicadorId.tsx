@@ -121,7 +121,7 @@ function PublicReferralPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Como prefere ser chamado"
-                className="input"
+                className="w-full rounded-2xl border border-border bg-card px-4 py-3.5 text-[0.95rem] outline-none focus:border-mango focus:ring-2 focus:ring-mango/30"
                 autoComplete="name"
               />
             </label>
@@ -134,7 +134,7 @@ function PublicReferralPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="(11) 9 9999-9999"
-                className="input"
+                className="w-full rounded-2xl border border-border bg-card px-4 py-3.5 text-[0.95rem] outline-none focus:border-mango focus:ring-2 focus:ring-mango/30"
                 inputMode="tel"
                 autoComplete="tel"
               />
