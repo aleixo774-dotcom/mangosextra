@@ -15,7 +15,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedNovaRouteImport } from './routes/_authenticated/nova'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedIndicacaoIdRouteImport } from './routes/_authenticated/indicacao.$id'
 import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin.usuarios'
 import { Route as AuthenticatedAdminConsultoresNovoRouteImport } from './routes/_authenticated/admin.consultores.novo'
@@ -49,9 +49,9 @@ const AuthenticatedNovaRoute = AuthenticatedNovaRouteImport.update({
   path: '/nova',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedIndicacaoIdRoute =
@@ -62,37 +62,37 @@ const AuthenticatedIndicacaoIdRoute =
   } as any)
 const AuthenticatedAdminUsuariosRoute =
   AuthenticatedAdminUsuariosRouteImport.update({
-    id: '/usuarios',
-    path: '/usuarios',
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: '/admin/usuarios',
+    path: '/admin/usuarios',
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAdminConsultoresNovoRoute =
   AuthenticatedAdminConsultoresNovoRouteImport.update({
-    id: '/consultores/novo',
-    path: '/consultores/novo',
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: '/admin/consultores/novo',
+    path: '/admin/consultores/novo',
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/nova': typeof AuthenticatedNovaRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/indicacao/$id': typeof AuthenticatedIndicacaoIdRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/consultores/novo': typeof AuthenticatedAdminConsultoresNovoRoute
 }
 export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/nova': typeof AuthenticatedNovaRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/': typeof AuthenticatedIndexRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/indicacao/$id': typeof AuthenticatedIndicacaoIdRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/consultores/novo': typeof AuthenticatedAdminConsultoresNovoRoute
 }
 export interface FileRoutesById {
@@ -100,12 +100,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/nova': typeof AuthenticatedNovaRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/_authenticated/indicacao/$id': typeof AuthenticatedIndicacaoIdRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/consultores/novo': typeof AuthenticatedAdminConsultoresNovoRoute
 }
 export interface FileRouteTypes {
@@ -114,34 +114,34 @@ export interface FileRouteTypes {
     | '/'
     | '/cadastro'
     | '/login'
-    | '/admin'
     | '/nova'
     | '/perfil'
     | '/admin/usuarios'
     | '/indicacao/$id'
+    | '/admin/'
     | '/admin/consultores/novo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/cadastro'
     | '/login'
-    | '/admin'
     | '/nova'
     | '/perfil'
     | '/'
     | '/admin/usuarios'
     | '/indicacao/$id'
+    | '/admin'
     | '/admin/consultores/novo'
   id:
     | '__root__'
     | '/_authenticated'
     | '/cadastro'
     | '/login'
-    | '/_authenticated/admin'
     | '/_authenticated/nova'
     | '/_authenticated/perfil'
     | '/_authenticated/'
     | '/_authenticated/admin/usuarios'
     | '/_authenticated/indicacao/$id'
+    | '/_authenticated/admin/'
     | '/_authenticated/admin/consultores/novo'
   fileRoutesById: FileRoutesById
 }
@@ -195,11 +195,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNovaRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
       path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/indicacao/$id': {
@@ -211,49 +211,40 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/admin/usuarios': {
       id: '/_authenticated/admin/usuarios'
-      path: '/usuarios'
+      path: '/admin/usuarios'
       fullPath: '/admin/usuarios'
       preLoaderRoute: typeof AuthenticatedAdminUsuariosRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/consultores/novo': {
       id: '/_authenticated/admin/consultores/novo'
-      path: '/consultores/novo'
+      path: '/admin/consultores/novo'
       fullPath: '/admin/consultores/novo'
       preLoaderRoute: typeof AuthenticatedAdminConsultoresNovoRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedRoute
     }
   }
 }
 
-interface AuthenticatedAdminRouteChildren {
-  AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
-  AuthenticatedAdminConsultoresNovoRoute: typeof AuthenticatedAdminConsultoresNovoRoute
-}
-
-const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
-  AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
-  AuthenticatedAdminConsultoresNovoRoute:
-    AuthenticatedAdminConsultoresNovoRoute,
-}
-
-const AuthenticatedAdminRouteWithChildren =
-  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
-
 interface AuthenticatedRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedNovaRoute: typeof AuthenticatedNovaRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
   AuthenticatedIndicacaoIdRoute: typeof AuthenticatedIndicacaoIdRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminConsultoresNovoRoute: typeof AuthenticatedAdminConsultoresNovoRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedNovaRoute: AuthenticatedNovaRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
   AuthenticatedIndicacaoIdRoute: AuthenticatedIndicacaoIdRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+  AuthenticatedAdminConsultoresNovoRoute:
+    AuthenticatedAdminConsultoresNovoRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
