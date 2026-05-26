@@ -93,9 +93,14 @@ function Admin() {
             <h1 className="font-display text-xl font-bold">Indicações por status</h1>
           </div>
           {isAdmin && (
-            <Link to="/admin/usuarios" className="rounded-full bg-mango px-3 py-1.5 text-[11px] font-bold text-mango-foreground shadow-md shadow-mango/30">
-              Usuários
-            </Link>
+            <div className="flex flex-col gap-1.5">
+              <Link to="/admin/usuarios" className="rounded-full bg-mango px-3 py-1 text-[11px] font-bold text-mango-foreground shadow-md shadow-mango/30">
+                Usuários
+              </Link>
+              <Link to="/admin/notificacoes" className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold">
+                Notificar
+              </Link>
+            </div>
           )}
         </div>
 
