@@ -18,6 +18,7 @@ function Perfil() {
   const { data: referrals } = useReferrals();
   const push = usePush();
   const nav = useNavigate();
+  const [localSlug, setLocalSlug] = useState<string | null>(profile?.slug ?? null);
 
   const points = profile?.points ?? 0;
   const { earned, toNext, progress } = bonusFromPoints(points);
