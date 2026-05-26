@@ -2,32 +2,46 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const inputSchema = z.object({
-  indicadorId: z.string().uuid(),
-  clientName: z.string().min(2).max(120),
-  clientPhone: z.string().min(8).max(40),
+  identifier: z.string().min(3).max(64),
+  clientName: z.string().trim().min(2).max(120),
+  clientPhone: z.string().trim().min(8).max(40),
 });
 
+async function findIndicadorIdByIdentifier(identifier: string): Promise<string | null> {
+  if (UUID_RE.test(identifier)) {
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("user_id")
+      .eq("user_id", identifier)
+      .maybeSingle();
+    return (data?.user_id as string | undefined) ?? null;
+  }
+  const { data } = await supabaseAdmin
+    .from("profiles")
+    .select("user_id")
+    .ilike("slug", identifier)
+    .maybeSingle();
+  return (data?.user_id as string | undefined) ?? null;
+}
+
 export const getIndicadorPublic = createServerFn({ method: "GET" })
-  .inputValidator((data: { indicadorId: string }) =>
-    z.object({ indicadorId: z.string().uuid() }).parse(data),
+  .inputValidator((data: { identifier: string }) =>
+    z.object({ identifier: z.string().min(3).max(64) }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { data: profile, error } = await supabaseAdmin
+    const userId = await findIndicadorIdByIdentifier(data.identifier);
+    if (!userId) return { found: false as const };
+
+    const { data: profile } = await supabaseAdmin
       .from("profiles")
-      .select("name, user_id")
-      .eq("user_id", data.indicadorId)
+      .select("name")
+      .eq("user_id", userId)
       .maybeSingle();
 
-    if (error || !profile) return { found: false as const };
-
-    const { data: roleRow } = await supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", data.indicadorId)
-      .maybeSingle();
-
-    if (!roleRow) return { found: false as const };
+    if (!profile) return { found: false as const };
 
     return {
       found: true as const,
@@ -39,19 +53,11 @@ export const getIndicadorPublic = createServerFn({ method: "GET" })
 export const submitPublicReferral = createServerFn({ method: "POST" })
   .inputValidator((data: z.infer<typeof inputSchema>) => inputSchema.parse(data))
   .handler(async ({ data }) => {
-    // Validate indicador exists
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("user_id")
-      .eq("user_id", data.indicadorId)
-      .maybeSingle();
-
-    if (!profile) {
-      throw new Error("Link de indicação inválido");
-    }
+    const userId = await findIndicadorIdByIdentifier(data.identifier);
+    if (!userId) throw new Error("Link de indicação inválido");
 
     const { error } = await supabaseAdmin.from("referrals").insert({
-      indicador_id: data.indicadorId,
+      indicador_id: userId,
       client_name: data.clientName,
       client_phone: data.clientPhone,
       product: "A definir",
@@ -61,6 +67,26 @@ export const submitPublicReferral = createServerFn({ method: "POST" })
     });
 
     if (error) throw new Error(error.message);
-
     return { ok: true };
+  });
+
+// --- Slug management (used by /perfil) ---
+
+const slugSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(3, "Mínimo 3 caracteres")
+  .max(30, "Máximo 30 caracteres")
+  .regex(/^[a-z0-9_-]+$/, "Use só letras, números, hífen ou underline");
+
+export const checkSlugAvailable = createServerFn({ method: "GET" })
+  .inputValidator((data: { slug: string }) => ({ slug: slugSchema.parse(data.slug) }))
+  .handler(async ({ data }) => {
+    const { data: row } = await supabaseAdmin
+      .from("profiles")
+      .select("user_id")
+      .ilike("slug", data.slug)
+      .maybeSingle();
+    return { available: !row };
   });
