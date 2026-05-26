@@ -4,7 +4,8 @@ export type Status =
   | "em_simulacao"
   | "aprovado"
   | "contrato"
-  | "pago";
+  | "pago"
+  | "nao_aprovado";
 
 export const STATUS_LABEL: Record<Status, string> = {
   recebido: "Recebido",
@@ -12,9 +13,22 @@ export const STATUS_LABEL: Record<Status, string> = {
   em_simulacao: "Em Simulação",
   aprovado: "Aprovado",
   contrato: "Contrato Emitido",
-  pago: "Comissão Paga",
+  pago: "Liberado",
+  nao_aprovado: "Não aprovado agora",
 };
 
+export const STATUS_DESCRIPTION: Record<Status, string> = {
+  recebido: "Indicação registrada e na fila de análise.",
+  em_analise: "Nosso time está validando os dados do cliente.",
+  em_simulacao: "Simulando as melhores condições para o cliente.",
+  aprovado: "Crédito aprovado! Pontos contabilizados.",
+  contrato: "Contrato emitido e aguardando assinatura.",
+  pago: "Operação liberada e bônus disponível.",
+  nao_aprovado:
+    "Não foi dessa vez. Vamos guardar o contato e tentar em uma nova oportunidade.",
+};
+
+// Fluxo linear principal (sem o terminal alternativo nao_aprovado)
 export const STATUS_ORDER: Status[] = [
   "recebido",
   "em_analise",
@@ -23,6 +37,12 @@ export const STATUS_ORDER: Status[] = [
   "contrato",
   "pago",
 ];
+
+// Status que contabilizam pontos para o indicador
+export const POINT_STATUSES: Status[] = ["aprovado", "contrato", "pago"];
+export const POINTS_PER_APPROVED = 10;
+export const POINTS_TO_BONUS = 100; // a cada 100 pts
+export const BONUS_BRL = 100; // ganha R$ 100
 
 export type TimelineEvent = {
   status: Status;
@@ -36,18 +56,20 @@ export type Referral = {
   phone: string;
   product: string;
   amount: number;
-  commission: number;
   status: Status;
   createdAt: string;
   observation?: string;
   timeline: TimelineEvent[];
 };
 
+// Produtos reais da Mangos Assessoria
 const PRODUCTS = [
-  "Consórcio Imóvel",
-  "Consórcio Auto",
+  "Antecipação do FGTS",
+  "Crédito do Trabalhador (CLT)",
+  "Crédito do INSS",
+  "Crédito na Conta de Luz",
   "Crédito Pessoal",
-  "Financiamento",
+  "Crédito no Cartão",
 ];
 
 let _id = 1000;
@@ -58,9 +80,8 @@ const seed: Referral[] = [
     id: nextId(),
     name: "Marina Silva",
     phone: "(11) 98765-4321",
-    product: "Consórcio Imóvel",
-    amount: 240000,
-    commission: 1800,
+    product: "Antecipação do FGTS",
+    amount: 4800,
     status: "aprovado",
     createdAt: "2026-05-20",
     timeline: [
@@ -74,9 +95,8 @@ const seed: Referral[] = [
     id: nextId(),
     name: "Carlos Mendes",
     phone: "(21) 99123-4567",
-    product: "Consórcio Auto",
-    amount: 85000,
-    commission: 640,
+    product: "Crédito do Trabalhador (CLT)",
+    amount: 8500,
     status: "em_simulacao",
     createdAt: "2026-05-22",
     timeline: [
@@ -89,9 +109,8 @@ const seed: Referral[] = [
     id: nextId(),
     name: "Juliana Rocha",
     phone: "(31) 98800-1122",
-    product: "Crédito Pessoal",
+    product: "Crédito do INSS",
     amount: 15000,
-    commission: 220,
     status: "pago",
     createdAt: "2026-05-10",
     timeline: [
@@ -106,9 +125,8 @@ const seed: Referral[] = [
     id: nextId(),
     name: "Roberto Lima",
     phone: "(85) 99777-2211",
-    product: "Financiamento",
-    amount: 120000,
-    commission: 900,
+    product: "Crédito na Conta de Luz",
+    amount: 1200,
     status: "recebido",
     createdAt: "2026-05-25",
     timeline: [{ status: "recebido", date: "2026-05-25" }],
@@ -117,9 +135,8 @@ const seed: Referral[] = [
     id: nextId(),
     name: "Ana Beatriz",
     phone: "(41) 98123-9988",
-    product: "Consórcio Imóvel",
-    amount: 320000,
-    commission: 2400,
+    product: "Crédito Pessoal",
+    amount: 12000,
     status: "contrato",
     createdAt: "2026-05-18",
     timeline: [
@@ -127,6 +144,24 @@ const seed: Referral[] = [
       { status: "em_analise", date: "2026-05-19" },
       { status: "aprovado", date: "2026-05-21" },
       { status: "contrato", date: "2026-05-23" },
+    ],
+  },
+  {
+    id: nextId(),
+    name: "Felipe Andrade",
+    phone: "(51) 98444-3322",
+    product: "Crédito no Cartão",
+    amount: 3500,
+    status: "nao_aprovado",
+    createdAt: "2026-05-12",
+    timeline: [
+      { status: "recebido", date: "2026-05-12" },
+      { status: "em_analise", date: "2026-05-13" },
+      {
+        status: "nao_aprovado",
+        date: "2026-05-15",
+        note: "Tentaremos em uma nova oportunidade.",
+      },
     ],
   },
 ];
@@ -149,12 +184,10 @@ export const mangoStore = {
     amount: number;
     observation?: string;
   }) {
-    const commission = Math.round(input.amount * 0.0075);
     const today = new Date().toISOString().slice(0, 10);
     const r: Referral = {
       id: nextId(),
       ...input,
-      commission,
       status: "recebido",
       createdAt: today,
       timeline: [{ status: "recebido", date: today }],
@@ -171,7 +204,10 @@ export const mangoStore = {
             status,
             timeline: r.timeline.some((t) => t.status === status)
               ? r.timeline
-              : [...r.timeline, { status, date: new Date().toISOString().slice(0, 10) }],
+              : [
+                  ...r.timeline,
+                  { status, date: new Date().toISOString().slice(0, 10) },
+                ],
           }
         : r,
     );
@@ -201,3 +237,26 @@ export function useMangoStore() {
 
 export const brl = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+// ===== Pontuação =====
+export function pointsFor(r: Referral): number {
+  return POINT_STATUSES.includes(r.status) ? POINTS_PER_APPROVED : 0;
+}
+
+export function totalPoints(list: Referral[]): number {
+  return list.reduce((s, r) => s + pointsFor(r), 0);
+}
+
+export function bonusFromPoints(points: number): {
+  earned: number; // BRL já conquistado
+  toNext: number; // pontos até o próximo bônus
+  progress: number; // 0..1 dentro do ciclo atual
+} {
+  const cycles = Math.floor(points / POINTS_TO_BONUS);
+  const remainder = points % POINTS_TO_BONUS;
+  return {
+    earned: cycles * BONUS_BRL,
+    toNext: POINTS_TO_BONUS - remainder,
+    progress: remainder / POINTS_TO_BONUS,
+  };
+}
