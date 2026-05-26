@@ -109,6 +109,16 @@ function Perfil() {
           </div>
         </div>
 
+        {!isStaff && user && (
+          <SlugEditor
+            userId={user.id}
+            currentSlug={localSlug}
+            onChange={setLocalSlug}
+          />
+        )}
+
+
+
         <div className="mt-4 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-forest/10 text-forest">
