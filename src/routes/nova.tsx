@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowLeft, Check, Sparkles } from "lucide-react";
+import { useState } from "react";
 import { MobileShell } from "@/components/mobile-shell";
-import { brl, mangoStore } from "@/lib/mango-data";
+import { brl, mangoStore, POINTS_PER_APPROVED } from "@/lib/mango-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/nova")({
@@ -16,15 +16,16 @@ function Nova() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [product, setProduct] = useState(products[0]);
-  const [amount, setAmount] = useState(50000);
+  const [amount, setAmount] = useState(5000);
   const [observation, setObservation] = useState("");
 
-  const commission = useMemo(() => Math.round(amount * 0.0075), [amount]);
   const canNext = step === 1 ? name.trim().length > 2 && phone.trim().length >= 8 : true;
 
   function submit() {
     const r = mangoStore.add({ name, phone, product, amount, observation });
-    toast.success("Indicação enviada!", { description: `${r.name} • ${brl(commission)} previstos` });
+    toast.success("Indicação enviada!", {
+      description: `${r.name} • +${POINTS_PER_APPROVED} pts se aprovada`,
+    });
     navigate({ to: "/indicacao/$id", params: { id: r.id } });
   }
 
@@ -94,9 +95,9 @@ function Nova() {
             <Field label={`Valor estimado: ${brl(amount)}`}>
               <input
                 type="range"
-                min={5000}
-                max={500000}
-                step={5000}
+                min={500}
+                max={50000}
+                step={500}
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
                 className="w-full accent-[color:var(--mango)]"
@@ -112,9 +113,15 @@ function Nova() {
             </Field>
 
             <div className="rounded-2xl border border-mango/30 bg-mango/10 p-4">
-              <p className="text-xs uppercase tracking-widest text-forest/70">Comissão prevista</p>
-              <p className="mt-1 font-display text-2xl font-bold text-forest">{brl(commission)}</p>
-              <p className="text-xs text-muted-foreground">0,75% sobre o valor estimado</p>
+              <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-forest/70">
+                <Sparkles className="h-3.5 w-3.5" /> Pontos previstos
+              </div>
+              <p className="mt-1 font-display text-2xl font-bold text-forest">
+                +{POINTS_PER_APPROVED} pts
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Creditados quando a indicação for aprovada.
+              </p>
             </div>
           </div>
         )}
@@ -126,7 +133,7 @@ function Nova() {
             <Review k="WhatsApp" v={phone} />
             <Review k="Produto" v={product} />
             <Review k="Valor estimado" v={brl(amount)} />
-            <Review k="Comissão prevista" v={brl(commission)} highlight />
+            <Review k="Pontos previstos" v={`+${POINTS_PER_APPROVED} pts`} highlight />
           </div>
         )}
       </main>
