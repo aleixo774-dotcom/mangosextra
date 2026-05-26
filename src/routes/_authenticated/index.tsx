@@ -4,6 +4,7 @@ import { MobileShell } from "@/components/mobile-shell";
 import { MangosLogo } from "@/components/mangos-logo";
 import { NotificationBell } from "@/components/notification-bell";
 import { StatusPill } from "@/components/status-pill";
+import { ShareLinkCard } from "@/components/share-link-card";
 import { bonusFromPoints, brl, pointsForStatus } from "@/lib/mango-data";
 import { useAuth } from "@/hooks/use-auth";
 import { useReferrals } from "@/lib/use-referrals";
