@@ -4,6 +4,7 @@ import { MobileShell } from "@/components/mobile-shell";
 import { MangosLogo } from "@/components/mangos-logo";
 import { NotificationBell } from "@/components/notification-bell";
 import { StatusPill } from "@/components/status-pill";
+import { ShareLinkCard } from "@/components/share-link-card";
 import { bonusFromPoints, brl, pointsForStatus } from "@/lib/mango-data";
 import { useAuth } from "@/hooks/use-auth";
 import { useReferrals } from "@/lib/use-referrals";
@@ -13,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/")({
 });
 
 function Home() {
-  const { profile, isStaff } = useAuth();
+  const { profile, user, isStaff } = useAuth();
   const { data: referrals } = useReferrals();
 
   const points = profile?.points ?? 0;
@@ -92,6 +93,10 @@ function Home() {
         >
           + Nova Indicação
         </Link>
+
+        {!isStaff && user && (
+          <ShareLinkCard userId={user.id} firstName={firstName} />
+        )}
 
         <div className="mt-3 rounded-2xl border border-mango/30 bg-mango/10 p-3 text-xs text-forest">
           🎯 <strong>Como funciona:</strong> a cada indicação aprovada você ganha

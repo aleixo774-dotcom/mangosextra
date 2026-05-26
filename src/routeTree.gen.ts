@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as RIndicadorIdRouteImport } from './routes/r.$indicadorId'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedNovaRouteImport } from './routes/_authenticated/nova'
 import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated/notificacoes'
@@ -40,6 +41,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const RIndicadorIdRoute = RIndicadorIdRouteImport.update({
+  id: '/r/$indicadorId',
+  path: '/r/$indicadorId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
   id: '/perfil',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/nova': typeof AuthenticatedNovaRoute
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/r/$indicadorId': typeof RIndicadorIdRoute
   '/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/indicacao/$id': typeof AuthenticatedIndicacaoIdRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/nova': typeof AuthenticatedNovaRoute
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/r/$indicadorId': typeof RIndicadorIdRoute
   '/': typeof AuthenticatedIndexRoute
   '/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/nova': typeof AuthenticatedNovaRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
+  '/r/$indicadorId': typeof RIndicadorIdRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/nova'
     | '/perfil'
+    | '/r/$indicadorId'
     | '/admin/notificacoes'
     | '/admin/usuarios'
     | '/indicacao/$id'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/nova'
     | '/perfil'
+    | '/r/$indicadorId'
     | '/'
     | '/admin/notificacoes'
     | '/admin/usuarios'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notificacoes'
     | '/_authenticated/nova'
     | '/_authenticated/perfil'
+    | '/r/$indicadorId'
     | '/_authenticated/'
     | '/_authenticated/admin/notificacoes'
     | '/_authenticated/admin/usuarios'
@@ -175,6 +187,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   CadastroRoute: typeof CadastroRoute
   LoginRoute: typeof LoginRoute
+  RIndicadorIdRoute: typeof RIndicadorIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -206,6 +219,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/r/$indicadorId': {
+      id: '/r/$indicadorId'
+      path: '/r/$indicadorId'
+      fullPath: '/r/$indicadorId'
+      preLoaderRoute: typeof RIndicadorIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/perfil': {
       id: '/_authenticated/perfil'
@@ -299,6 +319,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   CadastroRoute: CadastroRoute,
   LoginRoute: LoginRoute,
+  RIndicadorIdRoute: RIndicadorIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
