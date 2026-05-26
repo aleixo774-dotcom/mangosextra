@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, Sparkles, TrendingUp, Trophy } from "lucide-react";
 import { MobileShell } from "@/components/mobile-shell";
 import { MangosLogo } from "@/components/mangos-logo";
+import { NotificationBell } from "@/components/notification-bell";
 import { StatusPill } from "@/components/status-pill";
 import { bonusFromPoints, brl, pointsForStatus } from "@/lib/mango-data";
 import { useAuth } from "@/hooks/use-auth";
@@ -37,13 +38,16 @@ function Home() {
             <MangosLogo />
             <h1 className="mt-2 font-display text-lg font-semibold">Olá, {firstName} 👋</h1>
           </div>
-          <Link
-            to="/perfil"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-mango font-display text-sm font-bold text-mango-foreground shadow-md shadow-mango/30 ring-2 ring-white/10"
-            aria-label="Meu perfil"
-          >
-            {initials}
-          </Link>
+          <div className="flex items-center gap-2">
+            <NotificationBell tone="dark" />
+            <Link
+              to="/perfil"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-mango font-display text-sm font-bold text-mango-foreground shadow-md shadow-mango/30 ring-2 ring-white/10"
+              aria-label="Meu perfil"
+            >
+              {initials}
+            </Link>
+          </div>
         </div>
 
         <div
