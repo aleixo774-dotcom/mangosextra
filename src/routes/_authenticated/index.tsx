@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/")({
 });
 
 function Home() {
-  const { profile, isAdmin } = useAuth();
+  const { profile, isStaff } = useAuth();
   const { data: referrals } = useReferrals();
 
   const points = profile?.points ?? 0;
@@ -95,18 +95,10 @@ function Home() {
           <strong> R$ 100</strong> de bônus.
         </div>
 
-        {isAdmin && (
-          <Link
-            to="/admin"
-            className="mt-3 block rounded-2xl border border-coral/40 bg-coral/10 p-3 text-xs font-semibold text-coral"
-          >
-            👑 Você é admin — acessar painel de gestão
-          </Link>
-        )}
 
         <div className="mt-6 flex items-center justify-between">
           <h2 className="font-display text-base font-bold">
-            {isAdmin ? "Todas as indicações" : "Suas indicações"}
+            {isStaff ? "Todas as indicações" : "Suas indicações"}
           </h2>
           <span className="text-xs text-muted-foreground">{referrals.length} no total</span>
         </div>
@@ -133,6 +125,9 @@ function Home() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold">{r.client_name}</p>
                     <p className="truncate text-xs text-muted-foreground">{r.product}</p>
+                    {isStaff && r.indicador_name && (
+                      <p className="truncate text-[10px] text-forest/70">por {r.indicador_name}</p>
+                    )}
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <StatusPill status={r.status} />

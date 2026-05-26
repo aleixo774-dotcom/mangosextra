@@ -8,6 +8,8 @@ type AuthContextValue = {
   user: User | null;
   profile: Profile | null;
   isAdmin: boolean;
+  isConsultor: boolean;
+  isStaff: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -20,6 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isConsultor, setIsConsultor] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadExtras = async (uid: string) => {
@@ -29,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     ]);
     setProfile((profileRes.data as Profile | null) ?? null);
     setIsAdmin(!!roleRes.data?.some((r) => r.role === "admin"));
+    setIsConsultor(!!roleRes.data?.some((r) => r.role === "consultor"));
   };
 
   useEffect(() => {
@@ -44,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setProfile(null);
         setIsAdmin(false);
+        setIsConsultor(false);
       }
     });
 
@@ -71,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ session, user, profile, isAdmin, loading, signOut, refresh }}
+      value={{ session, user, profile, isAdmin, isConsultor, isStaff: isAdmin || isConsultor, loading, signOut, refresh }}
     >
       {children}
     </AuthContext.Provider>

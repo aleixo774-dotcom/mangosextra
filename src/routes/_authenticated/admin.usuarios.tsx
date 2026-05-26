@@ -1,16 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Circle, Search, UserCheck, UserX, Users } from "lucide-react";
+import { ArrowLeft, Circle, Plus, Search, UserCheck, UserX, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Profile } from "@/lib/mango-data";
+import { useServerFn } from "@tanstack/react-start";
+import { updateUserRole } from "@/lib/consultores.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/usuarios")({
   component: AdminUsuarios,
 });
 
 type Presence = "online" | "ativo" | "inativo" | "pendente";
+type Role = "admin" | "consultor" | "indicador";
 
 function presenceOf(profile: Profile, refCount: number): Presence {
   if (refCount === 0) return "pendente";
@@ -37,18 +40,25 @@ const PRESENCE_STYLE: Record<Presence, { dot: string; label: string; pill: strin
   pendente: { dot: "bg-coral", label: "Pendente", pill: "bg-coral/15 text-coral" },
 };
 
-const FILTERS: Array<{ key: "todos" | Presence; label: string }> = [
+const ROLE_LABEL: Record<Role, string> = {
+  admin: "Admin",
+  consultor: "Consultor",
+  indicador: "Indicador",
+};
+
+const FILTERS: Array<{ key: "todos" | Role | Presence; label: string }> = [
   { key: "todos", label: "Todos" },
+  { key: "indicador", label: "Indicadores" },
+  { key: "consultor", label: "Consultores" },
+  { key: "admin", label: "Admins" },
   { key: "online", label: "Online" },
-  { key: "ativo", label: "Ativos" },
-  { key: "inativo", label: "Inativos" },
-  { key: "pendente", label: "Pendentes" },
 ];
 
 type Row = {
   profile: Profile;
   refCount: number;
   presence: Presence;
+  role: Role;
 };
 
 function AdminUsuarios() {
@@ -58,6 +68,8 @@ function AdminUsuarios() {
   const [q, setQ] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const updateRoleFn = useServerFn(updateUserRole);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !isAdmin) {
@@ -66,42 +78,71 @@ function AdminUsuarios() {
     }
   }, [isAdmin, loading, nav]);
 
+  async function reload() {
+    setLoadingData(true);
+    const [profilesRes, countsRes, rolesRes] = await Promise.all([
+      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+      supabase.from("referrals").select("indicador_id"),
+      supabase.from("user_roles").select("user_id,role"),
+    ]);
+    const counts = new Map<string, number>();
+    ((countsRes.data ?? []) as Array<{ indicador_id: string }>).forEach((r) => {
+      counts.set(r.indicador_id, (counts.get(r.indicador_id) ?? 0) + 1);
+    });
+    const roleMap = new Map<string, Role>();
+    ((rolesRes.data ?? []) as Array<{ user_id: string; role: Role }>).forEach((r) => {
+      // admin > consultor > indicador
+      const cur = roleMap.get(r.user_id);
+      if (!cur || (r.role === "admin") || (r.role === "consultor" && cur === "indicador")) {
+        roleMap.set(r.user_id, r.role);
+      }
+    });
+    const built: Row[] = ((profilesRes.data ?? []) as Profile[]).map((p) => {
+      const c = counts.get(p.user_id) ?? 0;
+      return {
+        profile: p,
+        refCount: c,
+        presence: presenceOf(p, c),
+        role: roleMap.get(p.user_id) ?? "indicador",
+      };
+    });
+    setRows(built);
+    setLoadingData(false);
+  }
+
   useEffect(() => {
     if (!isAdmin) return;
-    (async () => {
-      const [profilesRes, countsRes] = await Promise.all([
-        supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-        supabase.from("referrals").select("indicador_id"),
-      ]);
-      const counts = new Map<string, number>();
-      ((countsRes.data ?? []) as Array<{ indicador_id: string }>).forEach((r) => {
-        counts.set(r.indicador_id, (counts.get(r.indicador_id) ?? 0) + 1);
-      });
-      const built: Row[] = ((profilesRes.data ?? []) as Profile[]).map((p) => {
-        const c = counts.get(p.user_id) ?? 0;
-        return { profile: p, refCount: c, presence: presenceOf(p, c) };
-      });
-      setRows(built);
-      setLoadingData(false);
-    })();
+    reload();
   }, [isAdmin]);
 
   const counts = useMemo(
     () => ({
       total: rows.length,
       online: rows.filter((r) => r.presence === "online").length,
-      ativo: rows.filter((r) => r.presence === "ativo").length,
-      inativo: rows.filter((r) => r.presence === "inativo").length,
-      pendente: rows.filter((r) => r.presence === "pendente").length,
+      consultor: rows.filter((r) => r.role === "consultor").length,
+      indicador: rows.filter((r) => r.role === "indicador").length,
     }),
     [rows],
   );
 
-  const list = rows.filter(
-    (u) =>
-      (filter === "todos" || u.presence === filter) &&
-      (q === "" || u.profile.name.toLowerCase().includes(q.toLowerCase())),
-  );
+  const list = rows.filter((u) => {
+    const matchesQ = q === "" || u.profile.name.toLowerCase().includes(q.toLowerCase());
+    if (!matchesQ) return false;
+    if (filter === "todos") return true;
+    if (filter === "online") return u.presence === "online";
+    return u.role === filter;
+  });
+
+  async function changeRole(userId: string, role: Role) {
+    try {
+      await updateRoleFn({ data: { user_id: userId, role } });
+      toast.success(`Papel atualizado para ${ROLE_LABEL[role]}`);
+      setEditingId(null);
+      reload();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    }
+  }
 
   if (!isAdmin) return null;
 
@@ -112,22 +153,28 @@ function AdminUsuarios() {
           <Link to="/admin" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10" aria-label="Voltar">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <div>
-            <p className="text-xs uppercase tracking-widest text-mango">Admin · Indicadores</p>
+          <div className="flex-1">
+            <p className="text-xs uppercase tracking-widest text-mango">Admin · Equipe</p>
             <h1 className="font-display text-xl font-bold">Usuários</h1>
           </div>
+          <Link
+            to="/admin/consultores/novo"
+            className="flex items-center gap-1 rounded-full bg-mango px-3 py-1.5 text-[11px] font-bold text-mango-foreground shadow-md shadow-mango/30"
+          >
+            <Plus className="h-3 w-3" /> Consultor
+          </Link>
         </div>
 
         <div className="mt-5 grid grid-cols-4 gap-2">
           <Kpi icon={<Users className="h-3 w-3" />} label="Total" value={counts.total} />
           <Kpi icon={<Circle className="h-3 w-3 fill-current" />} label="Online" value={counts.online} accent />
-          <Kpi icon={<UserCheck className="h-3 w-3" />} label="Ativos" value={counts.ativo} />
-          <Kpi icon={<UserX className="h-3 w-3" />} label="Inativ." value={counts.inativo} />
+          <Kpi icon={<UserCheck className="h-3 w-3" />} label="Consult." value={counts.consultor} />
+          <Kpi icon={<UserX className="h-3 w-3" />} label="Indic." value={counts.indicador} />
         </div>
 
         <div className="mt-4 flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-2">
           <Search className="h-4 w-4 opacity-70" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar indicador..." className="w-full bg-transparent text-sm outline-none placeholder:text-forest-foreground/50" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar..." className="w-full bg-transparent text-sm outline-none placeholder:text-forest-foreground/50" />
         </div>
       </header>
 
@@ -156,6 +203,7 @@ function AdminUsuarios() {
         <ul className="space-y-2">
           {list.map((u) => {
             const p = PRESENCE_STYLE[u.presence];
+            const editing = editingId === u.profile.user_id;
             return (
               <li key={u.profile.id} className="rounded-2xl bg-card p-3 shadow-sm">
                 <div className="flex items-center gap-3">
@@ -168,7 +216,7 @@ function AdminUsuarios() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{u.profile.name}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {u.profile.city ?? "—"} · visto {relTime(u.profile.last_seen_at)}
+                      {u.profile.email ?? u.profile.city ?? "—"} · {relTime(u.profile.last_seen_at)}
                     </p>
                   </div>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${p.pill}`}>
@@ -176,13 +224,41 @@ function AdminUsuarios() {
                   </span>
                 </div>
                 <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2 text-[11px]">
-                  <span className="text-muted-foreground">
-                    Desde {new Date(u.profile.created_at).toLocaleDateString("pt-BR")}
+                  <span className="font-semibold">
+                    <span className={`rounded-full px-2 py-0.5 ${
+                      u.role === "admin" ? "bg-coral/15 text-coral" :
+                      u.role === "consultor" ? "bg-forest/10 text-forest" :
+                      "bg-mango/15 text-[color:oklch(0.35_0.1_125)]"
+                    }`}>
+                      {ROLE_LABEL[u.role]}
+                    </span>
+                    {u.role === "indicador" && (
+                      <span className="ml-2 text-muted-foreground">{u.refCount} ind · {u.profile.points} pts</span>
+                    )}
                   </span>
-                  <span className="font-semibold text-forest">
-                    {u.refCount} ind · <span className="text-coral">{u.profile.points} pts</span>
-                  </span>
+                  <button
+                    onClick={() => setEditingId(editing ? null : u.profile.user_id)}
+                    className="text-forest underline"
+                  >
+                    {editing ? "Cancelar" : "Editar papel"}
+                  </button>
                 </div>
+                {editing && (
+                  <div className="mt-2 flex gap-2">
+                    {(["indicador", "consultor", "admin"] as Role[]).map((r) => (
+                      <button
+                        key={r}
+                        onClick={() => changeRole(u.profile.user_id, r)}
+                        disabled={u.role === r}
+                        className={`flex-1 rounded-xl border px-2 py-1.5 text-[11px] font-semibold ${
+                          u.role === r ? "border-forest bg-forest text-forest-foreground opacity-50" : "border-border bg-background"
+                        }`}
+                      >
+                        {ROLE_LABEL[r]}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </li>
             );
           })}

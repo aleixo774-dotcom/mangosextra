@@ -18,6 +18,7 @@ import { Route as AuthenticatedNovaRouteImport } from './routes/_authenticated/n
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedIndicacaoIdRouteImport } from './routes/_authenticated/indicacao.$id'
 import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin.usuarios'
+import { Route as AuthenticatedAdminConsultoresNovoRouteImport } from './routes/_authenticated/admin.consultores.novo'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -65,6 +66,12 @@ const AuthenticatedAdminUsuariosRoute =
     path: '/usuarios',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminConsultoresNovoRoute =
+  AuthenticatedAdminConsultoresNovoRouteImport.update({
+    id: '/consultores/novo',
+    path: '/consultores/novo',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof AuthenticatedPerfilRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/indicacao/$id': typeof AuthenticatedIndicacaoIdRoute
+  '/admin/consultores/novo': typeof AuthenticatedAdminConsultoresNovoRoute
 }
 export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
@@ -85,6 +93,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/indicacao/$id': typeof AuthenticatedIndicacaoIdRoute
+  '/admin/consultores/novo': typeof AuthenticatedAdminConsultoresNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -97,6 +106,7 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/_authenticated/indicacao/$id': typeof AuthenticatedIndicacaoIdRoute
+  '/_authenticated/admin/consultores/novo': typeof AuthenticatedAdminConsultoresNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/admin/usuarios'
     | '/indicacao/$id'
+    | '/admin/consultores/novo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/cadastro'
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/usuarios'
     | '/indicacao/$id'
+    | '/admin/consultores/novo'
   id:
     | '__root__'
     | '/_authenticated'
@@ -130,6 +142,7 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/admin/usuarios'
     | '/_authenticated/indicacao/$id'
+    | '/_authenticated/admin/consultores/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -203,15 +216,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsuariosRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/consultores/novo': {
+      id: '/_authenticated/admin/consultores/novo'
+      path: '/consultores/novo'
+      fullPath: '/admin/consultores/novo'
+      preLoaderRoute: typeof AuthenticatedAdminConsultoresNovoRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
+  AuthenticatedAdminConsultoresNovoRoute: typeof AuthenticatedAdminConsultoresNovoRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
+  AuthenticatedAdminConsultoresNovoRoute:
+    AuthenticatedAdminConsultoresNovoRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =

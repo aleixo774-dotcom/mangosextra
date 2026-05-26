@@ -21,19 +21,19 @@ const COLS: Status[] = [
 ];
 
 function Admin() {
-  const { isAdmin, loading } = useAuth();
+  const { isAdmin, isStaff, loading } = useAuth();
   const nav = useNavigate();
   const { data: referrals } = useReferrals();
   const [col, setCol] = useState(0);
 
   useEffect(() => {
-    if (!loading && !isAdmin) {
+    if (!loading && !isStaff) {
       toast.error("Acesso restrito");
       nav({ to: "/" });
     }
-  }, [isAdmin, loading, nav]);
+  }, [isStaff, loading, nav]);
 
-  if (!isAdmin) return null;
+  if (!isStaff) return null;
 
   const status = COLS[col];
   const items = referrals.filter((r) => r.status === status);
@@ -85,9 +85,11 @@ function Admin() {
             <p className="text-xs uppercase tracking-widest text-mango">Painel Admin</p>
             <h1 className="font-display text-xl font-bold">Kanban de Leads</h1>
           </div>
-          <Link to="/admin/usuarios" className="rounded-full bg-mango px-3 py-1.5 text-[11px] font-bold text-mango-foreground shadow-md shadow-mango/30">
-            Usuários
-          </Link>
+          {isAdmin && (
+            <Link to="/admin/usuarios" className="rounded-full bg-mango px-3 py-1.5 text-[11px] font-bold text-mango-foreground shadow-md shadow-mango/30">
+              Usuários
+            </Link>
+          )}
         </div>
 
         <div className="mt-5 grid grid-cols-4 gap-2">
@@ -140,6 +142,9 @@ function Admin() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold">{r.client_name}</p>
                     <p className="truncate text-xs text-muted-foreground">{r.product}</p>
+                    {r.indicador_name && (
+                      <p className="truncate text-[10px] text-forest/70">por {r.indicador_name}</p>
+                    )}
                     <p className={`mt-1 text-xs font-semibold ${pts > 0 ? "text-money" : "text-muted-foreground"}`}>
                       {pts > 0 ? `+${pts} pts` : "—"}
                     </p>

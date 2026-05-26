@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, MessageCircle, Phone, XCircle } from "lucide-react";
+import { ArrowLeft, HeartHandshake, MessageCircle, Phone, XCircle } from "lucide-react";
 import { MobileShell } from "@/components/mobile-shell";
 import { StatusPill } from "@/components/status-pill";
 import {
@@ -10,6 +10,7 @@ import {
   STATUS_ORDER,
 } from "@/lib/mango-data";
 import { useReferral } from "@/lib/use-referrals";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/indicacao/$id")({
   component: Detail,
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/indicacao/$id")({
 function Detail() {
   const { id } = Route.useParams();
   const { referral: r, events, indicadorName, loading } = useReferral(id);
+  const { isStaff } = useAuth();
 
   if (loading) {
     return (
@@ -57,25 +59,43 @@ function Detail() {
             <div className="min-w-0 flex-1">
               <p className="font-display text-lg font-bold">{r.client_name}</p>
               <p className="truncate text-sm text-muted-foreground">{r.product}</p>
+              {isStaff && indicadorName && (
+                <p className="mt-0.5 truncate text-[11px] font-semibold text-forest">
+                  Indicado por {indicadorName}
+                </p>
+              )}
             </div>
             <StatusPill status={r.status} />
           </div>
 
-          <div className="mt-4 flex gap-2">
-            <a href={`tel:${r.client_phone}`} className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-sm font-semibold">
-              <Phone className="h-4 w-4" /> Ligar
-            </a>
-            <a
-              href={`https://wa.me/55${r.client_phone.replace(/\D/g, "")}?text=${encodeURIComponent(
-                `Olá ${r.client_name.split(" ")[0]}, recebi sua indicação do ${indicadorName ?? "nosso parceiro"} sobre o ${r.product} e vou prosseguir com seu atendimento.`,
-              )}`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-money py-2.5 text-sm font-semibold text-money-foreground"
-            >
-              <MessageCircle className="h-4 w-4" /> WhatsApp
-            </a>
-          </div>
+          {isStaff ? (
+            <div className="mt-4 flex gap-2">
+              <a href={`tel:${r.client_phone}`} className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-sm font-semibold">
+                <Phone className="h-4 w-4" /> Ligar
+              </a>
+              <a
+                href={`https://wa.me/55${r.client_phone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                  `Olá ${r.client_name.split(" ")[0]}, recebi sua indicação do ${indicadorName ?? "nosso parceiro"} sobre o ${r.product} e vou prosseguir com seu atendimento.`,
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-money py-2.5 text-sm font-semibold text-money-foreground"
+              >
+                <MessageCircle className="h-4 w-4" /> WhatsApp
+              </a>
+            </div>
+          ) : (
+            <div className="mt-4 rounded-2xl bg-forest/5 p-4">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-forest">
+                <HeartHandshake className="h-4 w-4" /> Em boas mãos
+              </div>
+              <p className="mt-1.5 text-sm leading-relaxed text-foreground/80">
+                Seu indicado já está com a <strong>equipe Mangos</strong>. Vamos
+                fazer de tudo para fechar o melhor contrato possível 🥭. Acompanhe
+                aqui o status — você será avisado em cada etapa.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3">
