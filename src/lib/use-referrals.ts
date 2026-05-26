@@ -2,17 +2,37 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Referral, Status, TimelineEvent } from "@/lib/mango-data";
 
-/** Lista indicações do usuário logado (admin vê todas — RLS controla). */
+export type ReferralWithIndicador = Referral & { indicador_name?: string | null };
+
+/** Lista indicações do usuário logado (admin/consultor vê todas — RLS controla). */
 export function useReferrals() {
-  const [data, setData] = useState<Referral[]>([]);
+  const [data, setData] = useState<ReferralWithIndicador[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase
+    const { data: refs, error } = await supabase
       .from("referrals")
       .select("*")
       .order("created_at", { ascending: false });
-    if (!error && data) setData(data as Referral[]);
+    if (error || !refs) {
+      setLoading(false);
+      return;
+    }
+    const ids = Array.from(new Set(refs.map((r) => r.indicador_id)));
+    let nameMap = new Map<string, string>();
+    if (ids.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("user_id,name")
+        .in("user_id", ids);
+      nameMap = new Map((profs ?? []).map((p) => [p.user_id, p.name]));
+    }
+    setData(
+      (refs as Referral[]).map((r) => ({
+        ...r,
+        indicador_name: nameMap.get(r.indicador_id) ?? null,
+      })),
+    );
     setLoading(false);
   }, []);
 

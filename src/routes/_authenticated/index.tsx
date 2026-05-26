@@ -95,14 +95,6 @@ function Home() {
           <strong> R$ 100</strong> de bônus.
         </div>
 
-        {isAdmin && (
-          <Link
-            to="/admin"
-            className="mt-3 block rounded-2xl border border-coral/40 bg-coral/10 p-3 text-xs font-semibold text-coral"
-          >
-            👑 Você é admin — acessar painel de gestão
-          </Link>
-        )}
 
         <div className="mt-6 flex items-center justify-between">
           <h2 className="font-display text-base font-bold">
