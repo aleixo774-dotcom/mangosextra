@@ -58,6 +58,7 @@ export function useReferral(id: string) {
   const [referral, setReferral] = useState<Referral | null>(null);
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [indicadorName, setIndicadorName] = useState<string | null>(null);
+  const [indicadorWhatsapp, setIndicadorWhatsapp] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -75,10 +76,12 @@ export function useReferral(id: string) {
     if (ref) {
       const { data: p } = await supabase
         .from("profiles")
-        .select("name")
+        .select("name,whatsapp")
         .eq("user_id", ref.indicador_id)
         .maybeSingle();
-      setIndicadorName((p as { name: string } | null)?.name ?? null);
+      const prof = p as { name: string; whatsapp: string | null } | null;
+      setIndicadorName(prof?.name ?? null);
+      setIndicadorWhatsapp(prof?.whatsapp ?? null);
     }
     setLoading(false);
   }, [id]);
@@ -98,7 +101,7 @@ export function useReferral(id: string) {
     };
   }, [id, load]);
 
-  return { referral, events, indicadorName, loading, reload: load };
+  return { referral, events, indicadorName, indicadorWhatsapp, loading, reload: load };
 }
 
 export async function createReferral(input: {
@@ -123,5 +126,12 @@ export async function updateReferralStatus(id: string, status: Status) {
     .from("referrals")
     .update({ status })
     .eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateReferralProduct(id: string, product: string, amount?: number) {
+  const patch: { product: string; amount?: number } = { product };
+  if (typeof amount === "number") patch.amount = amount;
+  const { error } = await supabase.from("referrals").update(patch).eq("id", id);
   if (error) throw error;
 }
