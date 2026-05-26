@@ -29,7 +29,9 @@ function Home() {
       <header className="bg-forest px-5 pb-8 pt-12 text-forest-foreground">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs uppercase tracking-widest opacity-70">Mangos Extra</p>
+            <p className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-mango">
+              <span aria-hidden>🥭</span> mangos · extra
+            </p>
             <h1 className="font-display text-lg font-semibold">Olá, Pedro 👋</h1>
           </div>
           <button
@@ -39,6 +41,7 @@ function Home() {
             <Bell className="h-5 w-5" />
           </button>
         </div>
+
 
         {/* Pontos card */}
         <div
