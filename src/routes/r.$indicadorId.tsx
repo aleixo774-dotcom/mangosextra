@@ -168,6 +168,7 @@ function PublicReferralPage() {
         }
         .input:focus { border-color: var(--mango); box-shadow: 0 0 0 3px color-mix(in oklab, var(--mango) 25%, transparent); }
       `}</style>
+      </div>
     </div>
   );
 }
