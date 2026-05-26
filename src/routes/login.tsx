@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
+import { MangosLogo } from "@/components/mangos-logo";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -50,9 +51,9 @@ function LoginPage() {
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-forest px-5 pt-16 text-forest-foreground">
-      <div className="text-center">
-        <p className="text-xs uppercase tracking-[0.3em] text-mango">🥭 mangos · extra</p>
-        <h1 className="mt-4 font-display text-3xl font-bold">Entrar</h1>
+      <div className="flex flex-col items-center text-center">
+        <MangosLogo />
+        <h1 className="mt-6 font-display text-3xl font-bold">Entrar</h1>
         <p className="mt-1 text-sm opacity-70">
           Acesse sua conta de indicador.
         </p>

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowUpRight, Bell, Sparkles, TrendingUp, Trophy } from "lucide-react";
+import { ArrowUpRight, Sparkles, TrendingUp, Trophy } from "lucide-react";
 import { MobileShell } from "@/components/mobile-shell";
+import { MangosLogo } from "@/components/mangos-logo";
 import { StatusPill } from "@/components/status-pill";
 import { bonusFromPoints, brl, pointsForStatus } from "@/lib/mango-data";
 import { useAuth } from "@/hooks/use-auth";
@@ -20,24 +21,29 @@ function Home() {
   ).length;
   const aprovadasCount = referrals.filter((r) => pointsForStatus(r.status) > 0).length;
   const { earned, toNext, progress } = bonusFromPoints(points);
-  const firstName = profile?.name?.split(" ")[0] ?? "🥭";
+  const firstName = profile?.name?.split(" ")[0] ?? "Indicador";
+  const initials = (profile?.name ?? "?")
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   return (
     <MobileShell>
       <header className="bg-forest px-5 pb-8 pt-12 text-forest-foreground">
         <div className="flex items-center justify-between">
           <div>
-            <p className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-mango">
-              <span aria-hidden>🥭</span> mangos · extra
-            </p>
-            <h1 className="font-display text-lg font-semibold">Olá, {firstName} 👋</h1>
+            <MangosLogo />
+            <h1 className="mt-2 font-display text-lg font-semibold">Olá, {firstName} 👋</h1>
           </div>
-          <button
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10"
-            aria-label="Notificações"
+          <Link
+            to="/perfil"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-mango font-display text-sm font-bold text-mango-foreground shadow-md shadow-mango/30 ring-2 ring-white/10"
+            aria-label="Meu perfil"
           >
-            <Bell className="h-5 w-5" />
-          </button>
+            {initials}
+          </Link>
         </div>
 
         <div
