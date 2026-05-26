@@ -1,6 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Circle, Search, UserCheck, UserX, Users } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import type { Profile } from "@/lib/mango-data";
 
 export const Route = createFileRoute("/_authenticated/admin/usuarios")({
   component: AdminUsuarios,
@@ -8,26 +12,23 @@ export const Route = createFileRoute("/_authenticated/admin/usuarios")({
 
 type Presence = "online" | "ativo" | "inativo" | "pendente";
 
-type Indicator = {
-  id: string;
-  name: string;
-  city: string;
-  joinedAt: string;
-  lastSeen: string;
-  presence: Presence;
-  referrals: number;
-  points: number;
-};
+function presenceOf(profile: Profile, refCount: number): Presence {
+  if (refCount === 0) return "pendente";
+  if (!profile.last_seen_at) return "inativo";
+  const diffMin = (Date.now() - new Date(profile.last_seen_at).getTime()) / 60000;
+  if (diffMin < 10) return "online";
+  if (diffMin < 60 * 24 * 3) return "ativo";
+  return "inativo";
+}
 
-// Mock — depois substituir por dados do Lovable Cloud (auth + tabela indicadores)
-const SEED: Indicator[] = [
-  { id: "u1", name: "Pedro Almeida", city: "Batatais/SP", joinedAt: "2026-04-12", lastSeen: "agora", presence: "online", referrals: 12, points: 80 },
-  { id: "u2", name: "Marina Silva", city: "Ribeirão Preto/SP", joinedAt: "2026-04-22", lastSeen: "5 min", presence: "online", referrals: 7, points: 50 },
-  { id: "u3", name: "Carlos Mendes", city: "Franca/SP", joinedAt: "2026-03-30", lastSeen: "2 h", presence: "ativo", referrals: 18, points: 110 },
-  { id: "u4", name: "Juliana Rocha", city: "Batatais/SP", joinedAt: "2026-02-14", lastSeen: "1 d", presence: "ativo", referrals: 25, points: 220 },
-  { id: "u5", name: "Roberto Lima", city: "Ituverava/SP", joinedAt: "2026-05-02", lastSeen: "12 d", presence: "inativo", referrals: 2, points: 10 },
-  { id: "u6", name: "Ana Beatriz", city: "Batatais/SP", joinedAt: "2026-05-25", lastSeen: "—", presence: "pendente", referrals: 0, points: 0 },
-];
+function relTime(iso: string | null): string {
+  if (!iso) return "—";
+  const diffMin = (Date.now() - new Date(iso).getTime()) / 60000;
+  if (diffMin < 1) return "agora";
+  if (diffMin < 60) return `${Math.floor(diffMin)} min`;
+  if (diffMin < 60 * 24) return `${Math.floor(diffMin / 60)} h`;
+  return `${Math.floor(diffMin / (60 * 24))} d`;
+}
 
 const PRESENCE_STYLE: Record<Presence, { dot: string; label: string; pill: string }> = {
   online: { dot: "bg-money", label: "Online", pill: "bg-money/15 text-[color:oklch(0.35_0.12_145)]" },
@@ -44,36 +45,71 @@ const FILTERS: Array<{ key: "todos" | Presence; label: string }> = [
   { key: "pendente", label: "Pendentes" },
 ];
 
+type Row = {
+  profile: Profile;
+  refCount: number;
+  presence: Presence;
+};
+
 function AdminUsuarios() {
+  const { isAdmin, loading } = useAuth();
+  const nav = useNavigate();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["key"]>("todos");
   const [q, setQ] = useState("");
+  const [rows, setRows] = useState<Row[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+
+  useEffect(() => {
+    if (!loading && !isAdmin) {
+      toast.error("Acesso restrito");
+      nav({ to: "/" });
+    }
+  }, [isAdmin, loading, nav]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    (async () => {
+      const [profilesRes, countsRes] = await Promise.all([
+        supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+        supabase.from("referrals").select("indicador_id"),
+      ]);
+      const counts = new Map<string, number>();
+      ((countsRes.data ?? []) as Array<{ indicador_id: string }>).forEach((r) => {
+        counts.set(r.indicador_id, (counts.get(r.indicador_id) ?? 0) + 1);
+      });
+      const built: Row[] = ((profilesRes.data ?? []) as Profile[]).map((p) => {
+        const c = counts.get(p.user_id) ?? 0;
+        return { profile: p, refCount: c, presence: presenceOf(p, c) };
+      });
+      setRows(built);
+      setLoadingData(false);
+    })();
+  }, [isAdmin]);
 
   const counts = useMemo(
     () => ({
-      total: SEED.length,
-      online: SEED.filter((u) => u.presence === "online").length,
-      ativo: SEED.filter((u) => u.presence === "ativo").length,
-      inativo: SEED.filter((u) => u.presence === "inativo").length,
-      pendente: SEED.filter((u) => u.presence === "pendente").length,
+      total: rows.length,
+      online: rows.filter((r) => r.presence === "online").length,
+      ativo: rows.filter((r) => r.presence === "ativo").length,
+      inativo: rows.filter((r) => r.presence === "inativo").length,
+      pendente: rows.filter((r) => r.presence === "pendente").length,
     }),
-    [],
+    [rows],
   );
 
-  const list = SEED.filter(
+  const list = rows.filter(
     (u) =>
       (filter === "todos" || u.presence === filter) &&
-      (q === "" || u.name.toLowerCase().includes(q.toLowerCase())),
+      (q === "" || u.profile.name.toLowerCase().includes(q.toLowerCase())),
   );
+
+  if (!isAdmin) return null;
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-md bg-background pb-12">
       <header className="bg-forest px-5 pb-6 pt-12 text-forest-foreground">
         <div className="flex items-center gap-3">
-          <Link
-            to="/admin"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10"
-            aria-label="Voltar"
-          >
+          <Link to="/admin" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10" aria-label="Voltar">
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
@@ -91,12 +127,7 @@ function AdminUsuarios() {
 
         <div className="mt-4 flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-2">
           <Search className="h-4 w-4 opacity-70" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar indicador..."
-            className="w-full bg-transparent text-sm outline-none placeholder:text-forest-foreground/50"
-          />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar indicador..." className="w-full bg-transparent text-sm outline-none placeholder:text-forest-foreground/50" />
         </div>
       </header>
 
@@ -105,15 +136,9 @@ function AdminUsuarios() {
           {FILTERS.map((f) => {
             const active = f.key === filter;
             return (
-              <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
-                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                  active
-                    ? "bg-forest text-forest-foreground"
-                    : "border border-border bg-card text-muted-foreground"
-                }`}
-              >
+              <button key={f.key} onClick={() => setFilter(f.key)} className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                active ? "bg-forest text-forest-foreground" : "border border-border bg-card text-muted-foreground"
+              }`}>
                 {f.label}
               </button>
             );
@@ -122,7 +147,8 @@ function AdminUsuarios() {
       </div>
 
       <main className="px-4 pt-2">
-        {list.length === 0 && (
+        {loadingData && <p className="p-8 text-center text-sm text-muted-foreground">Carregando…</p>}
+        {!loadingData && list.length === 0 && (
           <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             Nenhum usuário neste filtro.
           </p>
@@ -131,20 +157,18 @@ function AdminUsuarios() {
           {list.map((u) => {
             const p = PRESENCE_STYLE[u.presence];
             return (
-              <li key={u.id} className="rounded-2xl bg-card p-3 shadow-sm">
+              <li key={u.profile.id} className="rounded-2xl bg-card p-3 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <div className="flex h-11 w-11 items-center justify-center rounded-full bg-mango/20 font-display text-sm font-bold text-forest">
-                      {u.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                      {u.profile.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
                     </div>
-                    <span
-                      className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-card ${p.dot}`}
-                    />
+                    <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-card ${p.dot}`} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">{u.name}</p>
+                    <p className="truncate text-sm font-semibold">{u.profile.name}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {u.city} · visto {u.lastSeen}
+                      {u.profile.city ?? "—"} · visto {relTime(u.profile.last_seen_at)}
                     </p>
                   </div>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${p.pill}`}>
@@ -153,10 +177,10 @@ function AdminUsuarios() {
                 </div>
                 <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2 text-[11px]">
                   <span className="text-muted-foreground">
-                    Desde {new Date(u.joinedAt).toLocaleDateString("pt-BR")}
+                    Desde {new Date(u.profile.created_at).toLocaleDateString("pt-BR")}
                   </span>
                   <span className="font-semibold text-forest">
-                    {u.referrals} ind · <span className="text-coral">{u.points} pts</span>
+                    {u.refCount} ind · <span className="text-coral">{u.profile.points} pts</span>
                   </span>
                 </div>
               </li>
@@ -168,22 +192,10 @@ function AdminUsuarios() {
   );
 }
 
-function Kpi({
-  icon,
-  label,
-  value,
-  accent,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  accent?: boolean;
-}) {
+function Kpi({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: number; accent?: boolean }) {
   return (
     <div className="rounded-xl bg-white/10 p-2 backdrop-blur">
-      <div
-        className={`flex items-center gap-1 text-[9px] uppercase tracking-wider ${accent ? "text-money" : "opacity-70"}`}
-      >
+      <div className={`flex items-center gap-1 text-[9px] uppercase tracking-wider ${accent ? "text-money" : "opacity-70"}`}>
         {icon} {label}
       </div>
       <p className="font-display text-base font-bold">{value}</p>
