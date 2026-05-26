@@ -25,7 +25,7 @@ function BottomNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md border-t border-border bg-card/95 backdrop-blur">
-      <ul className="grid grid-cols-4 items-end px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2">
+      <ul className={cn("grid items-end px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2", cols)}>
         {items.map((it) => {
           const active = it.to === "/" ? path === "/" : path.startsWith(it.to);
           const Icon = it.icon;
