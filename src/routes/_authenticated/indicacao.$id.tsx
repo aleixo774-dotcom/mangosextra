@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, MessageCircle, Phone, XCircle } from "lucide-react";
+import { ArrowLeft, HeartHandshake, MessageCircle, Phone, XCircle } from "lucide-react";
 import { MobileShell } from "@/components/mobile-shell";
 import { StatusPill } from "@/components/status-pill";
 import {
@@ -10,6 +10,7 @@ import {
   STATUS_ORDER,
 } from "@/lib/mango-data";
 import { useReferral } from "@/lib/use-referrals";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/indicacao/$id")({
   component: Detail,
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/indicacao/$id")({
 function Detail() {
   const { id } = Route.useParams();
   const { referral: r, events, indicadorName, loading } = useReferral(id);
+  const { isStaff } = useAuth();
 
   if (loading) {
     return (
