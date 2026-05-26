@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/perfil")({
 });
 
 function Perfil() {
-  const { profile, user, signOut, isAdmin } = useAuth();
+  const { profile, user, signOut, isAdmin, isStaff } = useAuth();
   const { data: referrals } = useReferrals();
   const nav = useNavigate();
 
@@ -48,11 +48,15 @@ function Perfil() {
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-lg font-bold">{profile?.name ?? "Indicador"}</p>
             <p className="truncate text-sm text-muted-foreground">{user?.email}</p>
-            {isAdmin && (
+            {isAdmin ? (
               <Link to="/admin" className="mt-1 inline-block rounded-full bg-coral/15 px-2 py-0.5 text-[10px] font-bold text-coral">
                 👑 ADMIN — abrir painel
               </Link>
-            )}
+            ) : isStaff ? (
+              <Link to="/admin" className="mt-1 inline-block rounded-full bg-forest/15 px-2 py-0.5 text-[10px] font-bold text-forest">
+                💼 CONSULTOR — abrir painel
+              </Link>
+            ) : null}
           </div>
         </div>
 
