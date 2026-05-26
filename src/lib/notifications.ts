@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sendPushToUser } from "./push.functions";
 
 export type Notification = {
   id: string;
@@ -10,6 +11,14 @@ export type Notification = {
   read_at: string | null;
   created_at: string;
 };
+
+async function tryPush(user_id: string, title: string, body: string, url?: string | null) {
+  try {
+    await sendPushToUser({ data: { user_id, title, body, url: url ?? null } });
+  } catch (err) {
+    console.warn("push failed", err);
+  }
+}
 
 export async function sendNotification(input: {
   user_id: string;
@@ -24,6 +33,7 @@ export async function sendNotification(input: {
     url: input.url ?? null,
   });
   if (error) throw error;
+  void tryPush(input.user_id, input.title, input.body, input.url);
 }
 
 export async function sendBulkNotifications(
@@ -41,6 +51,7 @@ export async function sendBulkNotifications(
   }));
   const { error } = await supabase.from("notifications").insert(rows);
   if (error) throw error;
+  user_ids.forEach((uid) => void tryPush(uid, title, body, url));
 }
 
 export function useMyNotifications() {
