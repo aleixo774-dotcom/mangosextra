@@ -8,6 +8,7 @@ const styles: Record<Status, string> = {
   aprovado: "bg-money/20 text-[color:oklch(0.35_0.12_145)]",
   contrato: "bg-forest/15 text-forest",
   pago: "bg-money text-money-foreground",
+  nao_aprovado: "bg-destructive/15 text-destructive",
 };
 
 export function StatusPill({ status, className }: { status: Status; className?: string }) {

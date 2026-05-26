@@ -1,9 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft, MessageCircle, Phone } from "lucide-react";
+import { ArrowLeft, MessageCircle, Phone, XCircle } from "lucide-react";
 import { MobileShell } from "@/components/mobile-shell";
 import { StatusPill } from "@/components/status-pill";
 import {
   brl,
+  pointsFor,
+  STATUS_DESCRIPTION,
   STATUS_LABEL,
   STATUS_ORDER,
   useMangoStore,
@@ -24,7 +26,9 @@ function Detail() {
   const r = all.find((x) => x.id === id);
   if (!r) throw notFound();
 
+  const isReprovado = r.status === "nao_aprovado";
   const currentIdx = STATUS_ORDER.indexOf(r.status);
+  const pts = pointsFor(r);
 
   return (
     <MobileShell>
@@ -70,43 +74,62 @@ function Detail() {
 
         <div className="mt-4 grid grid-cols-2 gap-3">
           <Info label="Valor estimado" value={brl(r.amount)} />
-          <Info label="Comissão" value={brl(r.commission)} accent />
+          <Info
+            label="Pontos"
+            value={pts > 0 ? `+${pts} pts` : "—"}
+            accent={pts > 0}
+          />
         </div>
 
-        <h2 className="mt-6 font-display text-base font-bold">Linha do tempo</h2>
-        <ol className="mt-3 space-y-0">
-          {STATUS_ORDER.map((s, i) => {
-            const done = i <= currentIdx;
-            const event = r.timeline.find((t) => t.status === s);
-            const isLast = i === STATUS_ORDER.length - 1;
-            return (
-              <li key={s} className="relative flex gap-3 pb-5">
-                {!isLast && (
-                  <span
-                    className={`absolute left-[11px] top-6 h-full w-0.5 ${done ? "bg-money" : "bg-border"}`}
-                  />
-                )}
-                <span
-                  className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                    done
-                      ? "bg-money text-money-foreground"
-                      : "border-2 border-border bg-background text-muted-foreground"
-                  }`}
-                >
-                  {i + 1}
-                </span>
-                <div className="flex-1 pt-0.5">
-                  <p
-                    className={`text-sm font-semibold ${done ? "text-foreground" : "text-muted-foreground"}`}
-                  >
-                    {STATUS_LABEL[s]}
-                  </p>
-                  {event && <p className="text-xs text-muted-foreground">{event.date}</p>}
-                </div>
-              </li>
-            );
-          })}
-        </ol>
+        {isReprovado ? (
+          <div className="mt-6 rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
+            <div className="flex items-center gap-2 font-display text-base font-bold text-destructive">
+              <XCircle className="h-5 w-5" /> Não foi dessa vez
+            </div>
+            <p className="mt-2 text-sm text-foreground/80">
+              {STATUS_DESCRIPTION.nao_aprovado} Vamos manter o contato salvo e,
+              assim que houver uma nova oportunidade, tentaremos novamente — sem
+              precisar de uma nova indicação sua.
+            </p>
+          </div>
+        ) : (
+          <>
+            <h2 className="mt-6 font-display text-base font-bold">Linha do tempo</h2>
+            <ol className="mt-3 space-y-0">
+              {STATUS_ORDER.map((s, i) => {
+                const done = i <= currentIdx;
+                const event = r.timeline.find((t) => t.status === s);
+                const isLast = i === STATUS_ORDER.length - 1;
+                return (
+                  <li key={s} className="relative flex gap-3 pb-5">
+                    {!isLast && (
+                      <span
+                        className={`absolute left-[11px] top-6 h-full w-0.5 ${done ? "bg-money" : "bg-border"}`}
+                      />
+                    )}
+                    <span
+                      className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                        done
+                          ? "bg-money text-money-foreground"
+                          : "border-2 border-border bg-background text-muted-foreground"
+                      }`}
+                    >
+                      {i + 1}
+                    </span>
+                    <div className="flex-1 pt-0.5">
+                      <p
+                        className={`text-sm font-semibold ${done ? "text-foreground" : "text-muted-foreground"}`}
+                      >
+                        {STATUS_LABEL[s]}
+                      </p>
+                      {event && <p className="text-xs text-muted-foreground">{event.date}</p>}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </>
+        )}
       </main>
     </MobileShell>
   );
