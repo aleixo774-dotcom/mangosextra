@@ -156,18 +156,6 @@ function PublicReferralPage() {
         )}
       </main>
 
-      <style>{`
-        .input {
-          width: 100%;
-          border-radius: 1rem;
-          border: 1px solid var(--border);
-          background: var(--card);
-          padding: 0.875rem 1rem;
-          font-size: 0.95rem;
-          outline: none;
-        }
-        .input:focus { border-color: var(--mango); box-shadow: 0 0 0 3px color-mix(in oklab, var(--mango) 25%, transparent); }
-      `}</style>
       </div>
     </div>
   );
