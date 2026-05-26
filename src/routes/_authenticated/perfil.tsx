@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, LogOut, Sparkles, Trophy } from "lucide-react";
+import { ArrowLeft, Bell, BellOff, LogOut, Sparkles, Trophy } from "lucide-react";
 import { MobileShell } from "@/components/mobile-shell";
 import { bonusFromPoints, brl } from "@/lib/mango-data";
 import { useAuth } from "@/hooks/use-auth";
 import { useReferrals } from "@/lib/use-referrals";
+import { usePush } from "@/lib/use-push";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   component: Perfil,
@@ -12,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/perfil")({
 function Perfil() {
   const { profile, user, signOut, isAdmin, isStaff } = useAuth();
   const { data: referrals } = useReferrals();
+  const push = usePush();
   const nav = useNavigate();
 
   const points = profile?.points ?? 0;
@@ -30,6 +33,21 @@ function Perfil() {
   async function handleLogout() {
     await signOut();
     nav({ to: "/login", replace: true });
+  }
+
+  async function togglePush() {
+    try {
+      if (push.state === "granted-on") {
+        await push.disable();
+        toast.success("Notificações desativadas");
+      } else {
+        const ok = await push.enable();
+        if (ok) toast.success("Pronto! Você vai receber notificações 🔔");
+      }
+    } catch (e) {
+      toast.error("Não foi possível ativar as notificações");
+      console.error(e);
+    }
   }
 
   return (
@@ -86,6 +104,40 @@ function Perfil() {
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Indicações aprovadas</p>
             <p className="mt-1 font-display text-xl font-bold">{aprovadas}</p>
           </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-forest/10 text-forest">
+              {push.state === "granted-on" ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-sm font-bold">Notificações no celular</p>
+              <p className="text-xs text-muted-foreground">
+                {push.state === "unsupported" && "Seu navegador não suporta push."}
+                {push.state === "denied" && "Permissão bloqueada. Libere nas configurações do navegador."}
+                {push.state === "prompt" && "Ative para receber avisos mesmo com o app fechado."}
+                {push.state === "granted-off" && "Toque em ativar para receber notificações."}
+                {push.state === "granted-on" && "Ativadas. Você vai receber atualizações 🎉"}
+              </p>
+            </div>
+            {(push.state === "prompt" || push.state === "granted-off" || push.state === "granted-on") && (
+              <button
+                onClick={togglePush}
+                disabled={push.busy}
+                className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold ${
+                  push.state === "granted-on"
+                    ? "border border-border text-foreground"
+                    : "bg-forest text-forest-foreground"
+                }`}
+              >
+                {push.busy ? "..." : push.state === "granted-on" ? "Desativar" : "Ativar"}
+              </button>
+            )}
+          </div>
+          <p className="mt-3 text-[11px] text-muted-foreground">
+            💡 No iPhone, instale o app primeiro (Compartilhar → Adicionar à Tela de Início) para receber notificações.
+          </p>
         </div>
 
         <button
