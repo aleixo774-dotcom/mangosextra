@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as NovaRouteImport } from './routes/nova'
+import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as IndicacaoIdRouteImport } from './routes/indicacao.$id'
@@ -23,6 +24,11 @@ const PerfilRoute = PerfilRouteImport.update({
 const NovaRoute = NovaRouteImport.update({
   id: '/nova',
   path: '/nova',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -44,6 +50,7 @@ const IndicacaoIdRoute = IndicacaoIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/cadastro': typeof CadastroRoute
   '/nova': typeof NovaRoute
   '/perfil': typeof PerfilRoute
   '/indicacao/$id': typeof IndicacaoIdRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/cadastro': typeof CadastroRoute
   '/nova': typeof NovaRoute
   '/perfil': typeof PerfilRoute
   '/indicacao/$id': typeof IndicacaoIdRoute
@@ -59,21 +67,36 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/cadastro': typeof CadastroRoute
   '/nova': typeof NovaRoute
   '/perfil': typeof PerfilRoute
   '/indicacao/$id': typeof IndicacaoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/nova' | '/perfil' | '/indicacao/$id'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/cadastro'
+    | '/nova'
+    | '/perfil'
+    | '/indicacao/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/nova' | '/perfil' | '/indicacao/$id'
-  id: '__root__' | '/' | '/admin' | '/nova' | '/perfil' | '/indicacao/$id'
+  to: '/' | '/admin' | '/cadastro' | '/nova' | '/perfil' | '/indicacao/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/cadastro'
+    | '/nova'
+    | '/perfil'
+    | '/indicacao/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  CadastroRoute: typeof CadastroRoute
   NovaRoute: typeof NovaRoute
   PerfilRoute: typeof PerfilRoute
   IndicacaoIdRoute: typeof IndicacaoIdRoute
@@ -93,6 +116,13 @@ declare module '@tanstack/react-router' {
       path: '/nova'
       fullPath: '/nova'
       preLoaderRoute: typeof NovaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -122,6 +152,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  CadastroRoute: CadastroRoute,
   NovaRoute: NovaRoute,
   PerfilRoute: PerfilRoute,
   IndicacaoIdRoute: IndicacaoIdRoute,
@@ -129,3 +160,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
