@@ -45,7 +45,7 @@ function PublicReferralPage() {
     setBusy(true);
     try {
       await submit({
-        data: { indicadorId, clientName: name.trim(), clientPhone: phone.trim() },
+        data: { identifier: indicadorId, clientName: name.trim(), clientPhone: phone.trim() },
       });
       setDone(true);
     } catch (err) {
