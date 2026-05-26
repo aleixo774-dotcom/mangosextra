@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Bell, BellOff, LogOut, Sparkles, Trophy } from "lucide-react";
+import { useState } from "react";
 import { MobileShell } from "@/components/mobile-shell";
+import { SlugEditor } from "@/components/slug-editor";
 import { bonusFromPoints, brl } from "@/lib/mango-data";
 import { useAuth } from "@/hooks/use-auth";
 import { useReferrals } from "@/lib/use-referrals";
@@ -16,6 +18,7 @@ function Perfil() {
   const { data: referrals } = useReferrals();
   const push = usePush();
   const nav = useNavigate();
+  const [localSlug, setLocalSlug] = useState<string | null>(profile?.slug ?? null);
 
   const points = profile?.points ?? 0;
   const { earned, toNext, progress } = bonusFromPoints(points);
@@ -105,6 +108,16 @@ function Perfil() {
             <p className="mt-1 font-display text-xl font-bold">{aprovadas}</p>
           </div>
         </div>
+
+        {!isStaff && user && (
+          <SlugEditor
+            userId={user.id}
+            currentSlug={localSlug}
+            onChange={setLocalSlug}
+          />
+        )}
+
+
 
         <div className="mt-4 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-3">

@@ -29,7 +29,7 @@ function PublicReferralPage() {
 
   const { data: indicador, isLoading } = useQuery({
     queryKey: ["public-indicador", indicadorId],
-    queryFn: () => fetchIndicador({ data: { indicadorId } }),
+    queryFn: () => fetchIndicador({ data: { identifier: indicadorId } }),
   });
 
   const [name, setName] = useState("");
@@ -45,7 +45,7 @@ function PublicReferralPage() {
     setBusy(true);
     try {
       await submit({
-        data: { indicadorId, clientName: name.trim(), clientPhone: phone.trim() },
+        data: { identifier: indicadorId, clientName: name.trim(), clientPhone: phone.trim() },
       });
       setDone(true);
     } catch (err) {
@@ -77,7 +77,16 @@ function PublicReferralPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-background">
+    <div className="min-h-screen w-full bg-gradient-to-br from-forest via-forest/95 to-charcoal sm:py-6 lg:py-10">
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 hidden sm:block"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 20% 30%, color-mix(in oklab, var(--mango) 18%, transparent) 0%, transparent 45%), radial-gradient(circle at 80% 70%, color-mix(in oklab, var(--coral) 15%, transparent) 0%, transparent 50%)",
+        }}
+      />
+      <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col overflow-hidden bg-background shadow-2xl shadow-black/40 sm:min-h-[min(900px,calc(100vh-3rem))] sm:rounded-[2rem] sm:ring-1 sm:ring-white/10">
       <header className="bg-forest px-6 pb-10 pt-12 text-forest-foreground">
         <MangosLogo />
         <div className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-mango/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-mango">
@@ -159,6 +168,7 @@ function PublicReferralPage() {
         }
         .input:focus { border-color: var(--mango); box-shadow: 0 0 0 3px color-mix(in oklab, var(--mango) 25%, transparent); }
       `}</style>
+      </div>
     </div>
   );
 }

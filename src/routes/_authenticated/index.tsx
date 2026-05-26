@@ -95,7 +95,7 @@ function Home() {
         </Link>
 
         {!isStaff && user && (
-          <ShareLinkCard userId={user.id} firstName={firstName} />
+          <ShareLinkCard userId={user.id} firstName={firstName} slug={profile?.slug ?? null} />
         )}
 
         <div className="mt-3 rounded-2xl border border-mango/30 bg-mango/10 p-3 text-xs text-forest">

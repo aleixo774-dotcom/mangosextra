@@ -105,6 +105,7 @@ export type Profile = {
   whatsapp: string | null;
   city: string | null;
   cpf: string | null;
+  slug: string | null;
   points: number;
   last_seen_at: string | null;
   created_at: string;

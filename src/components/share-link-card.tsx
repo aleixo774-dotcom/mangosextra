@@ -2,10 +2,19 @@ import { Copy, Share2, Link2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export function ShareLinkCard({ userId, firstName }: { userId: string; firstName: string }) {
+export function ShareLinkCard({
+  userId,
+  firstName,
+  slug,
+}: {
+  userId: string;
+  firstName: string;
+  slug?: string | null;
+}) {
   const [copied, setCopied] = useState(false);
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const link = `${origin}/r/${userId}`;
+  const identifier = slug || userId;
+  const link = `${origin}/r/${identifier}`;
 
   async function copy() {
     try {
@@ -42,8 +51,15 @@ export function ShareLinkCard({ userId, firstName }: { userId: string; firstName
 
   return (
     <div className="mt-3 overflow-hidden rounded-2xl border border-mango/30 bg-gradient-to-br from-mango/15 to-coral/10 p-4">
-      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-forest/80">
-        <Link2 className="h-3.5 w-3.5" /> Seu link de indicação
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-forest/80">
+          <Link2 className="h-3.5 w-3.5" /> Seu link de indicação
+        </div>
+        {!slug && (
+          <span className="rounded-full bg-coral/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-coral">
+            Personalize no perfil
+          </span>
+        )}
       </div>
       <p className="mt-1 text-xs text-muted-foreground">
         Compartilhe — quem se cadastrar por aqui já cai como sua indicação.
