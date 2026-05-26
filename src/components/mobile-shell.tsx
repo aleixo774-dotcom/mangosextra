@@ -13,12 +13,12 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
 
 function BottomNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const items = [
+  const items: Array<{ to: string; icon: typeof Home; label: string; primary?: boolean }> = [
     { to: "/", icon: Home, label: "Início" },
     { to: "/nova", icon: Plus, label: "Indicar", primary: true },
     { to: "/admin", icon: BarChart3, label: "Admin" },
     { to: "/perfil", icon: User, label: "Perfil" },
-  ] as const;
+  ];
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md border-t border-border bg-card/95 backdrop-blur">
