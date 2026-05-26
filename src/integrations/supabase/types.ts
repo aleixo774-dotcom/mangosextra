@@ -148,6 +148,41 @@ export type Database = {
           },
         ]
       }
+      referral_notes: {
+        Row: {
+          author_id: string
+          author_role: Database["public"]["Enums"]["app_role"]
+          body: string
+          created_at: string
+          id: string
+          referral_id: string
+        }
+        Insert: {
+          author_id: string
+          author_role: Database["public"]["Enums"]["app_role"]
+          body: string
+          created_at?: string
+          id?: string
+          referral_id: string
+        }
+        Update: {
+          author_id?: string
+          author_role?: Database["public"]["Enums"]["app_role"]
+          body?: string
+          created_at?: string
+          id?: string
+          referral_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_notes_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           amount: number
