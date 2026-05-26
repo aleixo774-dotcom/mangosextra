@@ -5,7 +5,7 @@ import { MobileShell } from "@/components/mobile-shell";
 import { brl, mangoStore, POINTS_PER_APPROVED } from "@/lib/mango-data";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/nova")({
+export const Route = createFileRoute("/_authenticated/nova")({
   component: Nova,
 });
 

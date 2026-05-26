@@ -10,7 +10,7 @@ import {
   useMangoStore,
 } from "@/lib/mango-data";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   component: Home,
 });
 
