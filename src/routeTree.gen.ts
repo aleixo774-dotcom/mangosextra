@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedNovaRouteImport } from './routes/_authenticated/nova'
+import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated/notificacoes'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedIndicacaoIdRouteImport } from './routes/_authenticated/indicacao.$id'
 import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin.usuarios'
@@ -50,6 +51,12 @@ const AuthenticatedNovaRoute = AuthenticatedNovaRouteImport.update({
   path: '/nova',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedNotificacoesRoute =
+  AuthenticatedNotificacoesRouteImport.update({
+    id: '/notificacoes',
+    path: '/notificacoes',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -84,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
+  '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/nova': typeof AuthenticatedNovaRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
@@ -95,6 +103,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
+  '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/nova': typeof AuthenticatedNovaRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/': typeof AuthenticatedIndexRoute
@@ -109,6 +118,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
+  '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/nova': typeof AuthenticatedNovaRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cadastro'
     | '/login'
+    | '/notificacoes'
     | '/nova'
     | '/perfil'
     | '/admin/notificacoes'
@@ -135,6 +146,7 @@ export interface FileRouteTypes {
   to:
     | '/cadastro'
     | '/login'
+    | '/notificacoes'
     | '/nova'
     | '/perfil'
     | '/'
@@ -148,6 +160,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/cadastro'
     | '/login'
+    | '/_authenticated/notificacoes'
     | '/_authenticated/nova'
     | '/_authenticated/perfil'
     | '/_authenticated/'
@@ -208,6 +221,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNovaRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/notificacoes': {
+      id: '/_authenticated/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/notificacoes'
+      preLoaderRoute: typeof AuthenticatedNotificacoesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
       path: '/admin'
@@ -247,6 +267,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
   AuthenticatedNovaRoute: typeof AuthenticatedNovaRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -258,6 +279,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
   AuthenticatedNovaRoute: AuthenticatedNovaRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
