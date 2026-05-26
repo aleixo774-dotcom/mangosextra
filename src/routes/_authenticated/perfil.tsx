@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Bell, BellOff, LogOut, Sparkles, Trophy } from "lucide-react";
+import { useState } from "react";
 import { MobileShell } from "@/components/mobile-shell";
+import { SlugEditor } from "@/components/slug-editor";
 import { bonusFromPoints, brl } from "@/lib/mango-data";
 import { useAuth } from "@/hooks/use-auth";
 import { useReferrals } from "@/lib/use-referrals";
