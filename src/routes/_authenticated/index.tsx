@@ -94,6 +94,10 @@ function Home() {
           + Nova Indicação
         </Link>
 
+        {!isStaff && user && (
+          <ShareLinkCard userId={user.id} firstName={firstName} />
+        )}
+
         <div className="mt-3 rounded-2xl border border-mango/30 bg-mango/10 p-3 text-xs text-forest">
           🎯 <strong>Como funciona:</strong> a cada indicação aprovada você ganha
           <strong> 10 pontos</strong>. Ao atingir <strong>100 pts</strong> você recebe
