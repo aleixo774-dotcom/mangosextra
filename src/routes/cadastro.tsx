@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Check, Shield, Sparkles, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/cadastro")({
   component: Cadastro,
@@ -9,33 +11,62 @@ export const Route = createFileRoute("/cadastro")({
 
 function Cadastro() {
   const nav = useNavigate();
+  const { user } = useAuth();
+  const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
     nome: "",
     email: "",
+    senha: "",
     telefone: "",
     cidade: "",
     cpf: "",
     aceite: false,
   });
+
+  useEffect(() => {
+    if (user) nav({ to: "/", replace: true });
+  }, [user, nav]);
+
   const valid =
     form.nome.trim().length > 2 &&
     form.email.includes("@") &&
+    form.senha.length >= 6 &&
     form.telefone.length >= 10 &&
     form.aceite;
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!valid) return;
-    // TODO: integrar com Lovable Cloud (auth + tabela indicadores)
-    toast.success("Cadastro enviado! Em breve liberamos seu acesso 🥭");
-    setTimeout(() => nav({ to: "/" }), 800);
+    if (!valid || busy) return;
+    setBusy(true);
+    const { error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.senha,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: {
+          name: form.nome,
+          whatsapp: form.telefone,
+          city: form.cidade,
+          cpf: form.cpf,
+        },
+      },
+    });
+    setBusy(false);
+    if (error) {
+      toast.error("Não foi possível cadastrar", { description: error.message });
+      return;
+    }
+    toast.success("Cadastro feito!", {
+      description: "Confirme seu e-mail e faça login pra começar 🥭",
+    });
+    setTimeout(() => nav({ to: "/login" }), 1200);
   }
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-md bg-forest text-forest-foreground">
       <header className="px-5 pb-4 pt-12">
         <Link
-          to="/"
+          to="/login"
           className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10"
           aria-label="Voltar"
         >
@@ -71,39 +102,13 @@ function Cadastro() {
         onSubmit={submit}
         className="mt-4 space-y-3 rounded-t-3xl bg-background px-5 pb-10 pt-6 text-foreground"
       >
-        <Field
-          label="Nome completo"
-          value={form.nome}
-          onChange={(v) => setForm({ ...form, nome: v })}
-          placeholder="Como aparece no documento"
-        />
-        <Field
-          label="E-mail"
-          type="email"
-          value={form.email}
-          onChange={(v) => setForm({ ...form, email: v })}
-          placeholder="voce@email.com"
-        />
-        <Field
-          label="WhatsApp"
-          type="tel"
-          value={form.telefone}
-          onChange={(v) => setForm({ ...form, telefone: v })}
-          placeholder="(00) 90000-0000"
-        />
+        <Field label="Nome completo" value={form.nome} onChange={(v) => setForm({ ...form, nome: v })} placeholder="Como aparece no documento" />
+        <Field label="E-mail" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} placeholder="voce@email.com" />
+        <Field label="Senha (mín. 6 caracteres)" type="password" value={form.senha} onChange={(v) => setForm({ ...form, senha: v })} placeholder="••••••" />
+        <Field label="WhatsApp" type="tel" value={form.telefone} onChange={(v) => setForm({ ...form, telefone: v })} placeholder="(00) 90000-0000" />
         <div className="grid grid-cols-2 gap-3">
-          <Field
-            label="Cidade"
-            value={form.cidade}
-            onChange={(v) => setForm({ ...form, cidade: v })}
-            placeholder="Batatais"
-          />
-          <Field
-            label="CPF (opcional)"
-            value={form.cpf}
-            onChange={(v) => setForm({ ...form, cpf: v })}
-            placeholder="000.000.000-00"
-          />
+          <Field label="Cidade" value={form.cidade} onChange={(v) => setForm({ ...form, cidade: v })} placeholder="Batatais" />
+          <Field label="CPF (opcional)" value={form.cpf} onChange={(v) => setForm({ ...form, cpf: v })} placeholder="000.000.000-00" />
         </div>
 
         <label className="mt-2 flex items-start gap-2 rounded-2xl bg-muted p-3 text-xs">
@@ -114,22 +119,22 @@ function Cadastro() {
             className="mt-0.5 h-4 w-4 accent-[color:var(--coral)]"
           />
           <span className="text-muted-foreground">
-            Li e aceito os <strong className="text-forest">Termos de Uso</strong> e a{" "}
+            Li e aceito os <strong className="text-forest">Termos</strong> e a{" "}
             <strong className="text-forest">Política de Privacidade</strong> da Mangos.
           </span>
         </label>
 
         <button
           type="submit"
-          disabled={!valid}
+          disabled={!valid || busy}
           className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-mango py-4 font-display text-base font-bold text-mango-foreground shadow-lg shadow-mango/40 transition active:scale-[0.98] disabled:opacity-40 disabled:shadow-none"
         >
-          <Check className="h-5 w-5" /> Quero ser indicador
+          <Check className="h-5 w-5" /> {busy ? "Cadastrando…" : "Quero ser indicador"}
         </button>
 
         <p className="pt-2 text-center text-xs text-muted-foreground">
           Já tem cadastro?{" "}
-          <Link to="/" className="font-semibold text-coral underline">
+          <Link to="/login" className="font-semibold text-coral underline">
             Entrar
           </Link>
         </p>
@@ -139,11 +144,7 @@ function Cadastro() {
 }
 
 function Field({
-  label,
-  value,
-  onChange,
-  placeholder,
-  type = "text",
+  label, value, onChange, placeholder, type = "text",
 }: {
   label: string;
   value: string;

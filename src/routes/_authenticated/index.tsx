@@ -2,37 +2,35 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, Bell, Sparkles, TrendingUp, Trophy } from "lucide-react";
 import { MobileShell } from "@/components/mobile-shell";
 import { StatusPill } from "@/components/status-pill";
-import {
-  bonusFromPoints,
-  brl,
-  pointsFor,
-  totalPoints,
-  useMangoStore,
-} from "@/lib/mango-data";
+import { bonusFromPoints, brl, pointsForStatus } from "@/lib/mango-data";
+import { useAuth } from "@/hooks/use-auth";
+import { useReferrals } from "@/lib/use-referrals";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   component: Home,
 });
 
 function Home() {
-  const referrals = useMangoStore();
+  const { profile, isAdmin } = useAuth();
+  const { data: referrals } = useReferrals();
+
+  const points = profile?.points ?? 0;
   const ativos = referrals.filter(
     (r) => r.status !== "pago" && r.status !== "nao_aprovado",
   ).length;
-  const points = totalPoints(referrals);
-  const aprovadasCount = referrals.filter((r) => pointsFor(r) > 0).length;
+  const aprovadasCount = referrals.filter((r) => pointsForStatus(r.status) > 0).length;
   const { earned, toNext, progress } = bonusFromPoints(points);
+  const firstName = profile?.name?.split(" ")[0] ?? "🥭";
 
   return (
     <MobileShell>
-      {/* Header */}
       <header className="bg-forest px-5 pb-8 pt-12 text-forest-foreground">
         <div className="flex items-center justify-between">
           <div>
             <p className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-mango">
               <span aria-hidden>🥭</span> mangos · extra
             </p>
-            <h1 className="font-display text-lg font-semibold">Olá, Pedro 👋</h1>
+            <h1 className="font-display text-lg font-semibold">Olá, {firstName} 👋</h1>
           </div>
           <button
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10"
@@ -42,8 +40,6 @@ function Home() {
           </button>
         </div>
 
-
-        {/* Pontos card */}
         <div
           className="relative mt-6 overflow-hidden rounded-3xl p-5 text-charcoal shadow-xl shadow-black/20"
           style={{ background: "linear-gradient(135deg, var(--mango) 0%, var(--coral) 100%)" }}
@@ -57,7 +53,6 @@ function Home() {
             <span className="ml-2 text-base font-semibold opacity-70">pts</span>
           </p>
 
-          {/* progresso até próximo bônus */}
           <div className="mt-4">
             <div className="h-2 w-full overflow-hidden rounded-full bg-black/15">
               <div
@@ -74,19 +69,9 @@ function Home() {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="mt-4 grid grid-cols-2 gap-3">
-          <StatCard
-            icon={<Trophy className="h-3 w-3" />}
-            label="Bônus conquistado"
-            value={brl(earned)}
-            accent
-          />
-          <StatCard
-            icon={<Sparkles className="h-3 w-3" />}
-            label="Indicações ativas"
-            value={String(ativos)}
-          />
+          <StatCard icon={<Trophy className="h-3 w-3" />} label="Bônus conquistado" value={brl(earned)} accent />
+          <StatCard icon={<Sparkles className="h-3 w-3" />} label="Indicações ativas" value={String(ativos)} />
         </div>
       </header>
 
@@ -104,14 +89,31 @@ function Home() {
           <strong> R$ 100</strong> de bônus.
         </div>
 
+        {isAdmin && (
+          <Link
+            to="/admin"
+            className="mt-3 block rounded-2xl border border-coral/40 bg-coral/10 p-3 text-xs font-semibold text-coral"
+          >
+            👑 Você é admin — acessar painel de gestão
+          </Link>
+        )}
+
         <div className="mt-6 flex items-center justify-between">
-          <h2 className="font-display text-base font-bold">Suas indicações</h2>
+          <h2 className="font-display text-base font-bold">
+            {isAdmin ? "Todas as indicações" : "Suas indicações"}
+          </h2>
           <span className="text-xs text-muted-foreground">{referrals.length} no total</span>
         </div>
 
+        {referrals.length === 0 && (
+          <div className="mt-3 rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+            Nenhuma indicação ainda. Clique em <strong>+ Nova Indicação</strong> pra começar 🚀
+          </div>
+        )}
+
         <ul className="mt-3 space-y-3">
           {referrals.map((r) => {
-            const pts = pointsFor(r);
+            const pts = pointsForStatus(r.status);
             return (
               <li key={r.id}>
                 <Link
@@ -120,17 +122,15 @@ function Home() {
                   className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition active:scale-[0.99]"
                 >
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-mango/20 font-display text-sm font-bold text-forest">
-                    {r.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                    {r.client_name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{r.name}</p>
+                    <p className="truncate font-semibold">{r.client_name}</p>
                     <p className="truncate text-xs text-muted-foreground">{r.product}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <StatusPill status={r.status} />
-                    <span
-                      className={`text-xs font-semibold ${pts > 0 ? "text-money" : "text-muted-foreground"}`}
-                    >
+                    <span className={`text-xs font-semibold ${pts > 0 ? "text-money" : "text-muted-foreground"}`}>
                       {pts > 0 ? `+${pts} pts` : "—"}
                     </span>
                   </div>
@@ -146,10 +146,7 @@ function Home() {
 }
 
 function StatCard({
-  label,
-  value,
-  accent,
-  icon,
+  label, value, accent, icon,
 }: {
   label: string;
   value: string;
@@ -161,9 +158,7 @@ function StatCard({
       <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider opacity-80">
         {icon} {label}
       </div>
-      <p className={`mt-1 font-display text-lg font-bold ${accent ? "text-mango" : ""}`}>
-        {value}
-      </p>
+      <p className={`mt-1 font-display text-lg font-bold ${accent ? "text-mango" : ""}`}>{value}</p>
     </div>
   );
 }
