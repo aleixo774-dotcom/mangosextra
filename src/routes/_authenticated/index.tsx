@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/")({
 });
 
 function Home() {
-  const { profile, isStaff } = useAuth();
+  const { profile, user, isStaff } = useAuth();
   const { data: referrals } = useReferrals();
 
   const points = profile?.points ?? 0;
