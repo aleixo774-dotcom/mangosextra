@@ -59,6 +59,11 @@ function Detail() {
             <div className="min-w-0 flex-1">
               <p className="font-display text-lg font-bold">{r.client_name}</p>
               <p className="truncate text-sm text-muted-foreground">{r.product}</p>
+              {isStaff && indicadorName && (
+                <p className="mt-0.5 truncate text-[11px] font-semibold text-forest">
+                  Indicado por {indicadorName}
+                </p>
+              )}
             </div>
             <StatusPill status={r.status} />
           </div>
