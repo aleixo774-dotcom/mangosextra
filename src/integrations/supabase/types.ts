@@ -54,6 +54,7 @@ export type Database = {
           last_seen_at: string | null
           name: string
           points: number
+          slug: string | null
           updated_at: string
           user_id: string
           whatsapp: string | null
@@ -67,6 +68,7 @@ export type Database = {
           last_seen_at?: string | null
           name: string
           points?: number
+          slug?: string | null
           updated_at?: string
           user_id: string
           whatsapp?: string | null
@@ -80,6 +82,7 @@ export type Database = {
           last_seen_at?: string | null
           name?: string
           points?: number
+          slug?: string | null
           updated_at?: string
           user_id?: string
           whatsapp?: string | null
