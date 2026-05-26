@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/indicacao/$id")({
 
 function Detail() {
   const { id } = Route.useParams();
-  const { referral: r, events, loading } = useReferral(id);
+  const { referral: r, events, indicadorName, loading } = useReferral(id);
 
   if (loading) {
     return (
@@ -65,7 +65,14 @@ function Detail() {
             <a href={`tel:${r.client_phone}`} className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-sm font-semibold">
               <Phone className="h-4 w-4" /> Ligar
             </a>
-            <a href={`https://wa.me/55${r.client_phone.replace(/\D/g, "")}`} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-money py-2.5 text-sm font-semibold text-money-foreground">
+            <a
+              href={`https://wa.me/55${r.client_phone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                `Olá ${r.client_name.split(" ")[0]}, recebi sua indicação do ${indicadorName ?? "nosso parceiro"} sobre o ${r.product} e vou prosseguir com seu atendimento.`,
+              )}`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-money py-2.5 text-sm font-semibold text-money-foreground"
+            >
               <MessageCircle className="h-4 w-4" /> WhatsApp
             </a>
           </div>

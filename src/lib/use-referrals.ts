@@ -37,6 +37,7 @@ export function useReferrals() {
 export function useReferral(id: string) {
   const [referral, setReferral] = useState<Referral | null>(null);
   const [events, setEvents] = useState<TimelineEvent[]>([]);
+  const [indicadorName, setIndicadorName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -48,8 +49,17 @@ export function useReferral(id: string) {
         .eq("referral_id", id)
         .order("created_at", { ascending: true }),
     ]);
-    setReferral((r.data as Referral | null) ?? null);
+    const ref = (r.data as Referral | null) ?? null;
+    setReferral(ref);
     setEvents((e.data as TimelineEvent[] | null) ?? []);
+    if (ref) {
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", ref.indicador_id)
+        .maybeSingle();
+      setIndicadorName((p as { name: string } | null)?.name ?? null);
+    }
     setLoading(false);
   }, [id]);
 
@@ -68,7 +78,7 @@ export function useReferral(id: string) {
     };
   }, [id, load]);
 
-  return { referral, events, loading, reload: load };
+  return { referral, events, indicadorName, loading, reload: load };
 }
 
 export async function createReferral(input: {

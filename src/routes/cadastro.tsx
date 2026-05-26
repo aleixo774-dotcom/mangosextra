@@ -4,6 +4,7 @@ import { ArrowLeft, Check, Shield, Sparkles, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { MangosLogo } from "@/components/mangos-logo";
 
 export const Route = createFileRoute("/cadastro")({
   component: Cadastro,
@@ -57,7 +58,7 @@ function Cadastro() {
       return;
     }
     toast.success("Cadastro feito!", {
-      description: "Confirme seu e-mail e faça login pra começar 🥭",
+      description: "Confirme seu e-mail e faça login pra começar.",
     });
     setTimeout(() => nav({ to: "/login" }), 1200);
   }
@@ -74,10 +75,8 @@ function Cadastro() {
         </Link>
 
         <div className="mt-6">
-          <p className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-mango">
-            <span aria-hidden>🥭</span> mangos · extra
-          </p>
-          <h1 className="mt-2 font-display text-3xl font-bold leading-tight">
+          <MangosLogo />
+          <h1 className="mt-4 font-display text-3xl font-bold leading-tight">
             Vire um indicador <span className="text-mango">Mangos</span>
           </h1>
           <p className="mt-2 text-sm text-forest-foreground/70">
