@@ -6,6 +6,7 @@ import { brl, POINTS_PER_APPROVED, PRODUCTS } from "@/lib/mango-data";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { createReferral } from "@/lib/use-referrals";
+import { formatPhone, isValidPhone } from "@/lib/phone-mask";
 
 export const Route = createFileRoute("/_authenticated/nova")({
   component: Nova,
@@ -22,7 +23,7 @@ function Nova() {
   const [observation, setObservation] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const canNext = step === 1 ? name.trim().length > 2 && phone.trim().length >= 8 : true;
+  const canNext = step === 1 ? name.trim().length > 2 && isValidPhone(phone) : true;
 
   async function submit() {
     if (!user || busy) return;
@@ -74,7 +75,14 @@ function Nova() {
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Marina Silva" className="input" />
             </Field>
             <Field label="WhatsApp">
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 9 9999-9999" className="input" inputMode="tel" />
+              <input
+                value={phone}
+                onChange={(e) => setPhone(formatPhone(e.target.value))}
+                placeholder="(11) 99999-9999"
+                className="input"
+                inputMode="tel"
+                maxLength={15}
+              />
             </Field>
           </div>
         )}
@@ -86,8 +94,19 @@ function Nova() {
                 {PRODUCTS.map((p) => <option key={p}>{p}</option>)}
               </select>
             </Field>
-            <Field label={`Valor estimado: ${brl(amount)}`}>
-              <input type="range" min={500} max={50000} step={500} value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="w-full accent-[color:var(--mango)]" />
+            <Field label="Valor estimado (opcional)">
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min={500}
+                  max={50000}
+                  step={500}
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  className="flex-1 accent-[color:var(--mango)]"
+                />
+                <span className="min-w-[80px] text-right font-semibold text-sm">{brl(amount)}</span>
+              </div>
             </Field>
             <Field label="Observações (opcional)">
               <textarea value={observation} onChange={(e) => setObservation(e.target.value)} placeholder="Conte algo sobre o cliente..." className="input min-h-24" />

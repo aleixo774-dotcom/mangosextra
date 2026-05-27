@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { MangosLogo } from "@/components/mangos-logo";
+import { formatPhone, isValidPhone } from "@/lib/phone-mask";
 
 export const Route = createFileRoute("/cadastro")({
   component: Cadastro,
@@ -32,7 +33,7 @@ function Cadastro() {
     form.nome.trim().length > 2 &&
     form.email.includes("@") &&
     form.senha.length >= 6 &&
-    form.telefone.length >= 10 &&
+    isValidPhone(form.telefone) &&
     form.aceite;
 
   async function submit(e: React.FormEvent) {
@@ -104,7 +105,7 @@ function Cadastro() {
         <Field label="Nome completo" value={form.nome} onChange={(v) => setForm({ ...form, nome: v })} placeholder="Como aparece no documento" />
         <Field label="E-mail" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} placeholder="voce@email.com" />
         <Field label="Senha (mín. 6 caracteres)" type="password" value={form.senha} onChange={(v) => setForm({ ...form, senha: v })} placeholder="••••••" />
-        <Field label="WhatsApp" type="tel" value={form.telefone} onChange={(v) => setForm({ ...form, telefone: v })} placeholder="(00) 90000-0000" />
+        <Field label="WhatsApp" type="tel" value={form.telefone} onChange={(v) => setForm({ ...form, telefone: formatPhone(v) })} placeholder="(11) 99999-9999" maxLength={15} />
         <div className="grid grid-cols-2 gap-3">
           <Field label="Cidade" value={form.cidade} onChange={(v) => setForm({ ...form, cidade: v })} placeholder="Batatais" />
           <Field label="CPF (opcional)" value={form.cpf} onChange={(v) => setForm({ ...form, cpf: v })} placeholder="000.000.000-00" />

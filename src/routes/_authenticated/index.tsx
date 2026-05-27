@@ -23,8 +23,8 @@ function Home() {
   ).length;
   const aprovadasCount = referrals.filter((r) => pointsForStatus(r.status) > 0).length;
   const { earned, toNext, progress } = bonusFromPoints(points);
-  const firstName = profile?.name?.split(" ")[0] ?? "Indicador";
-  const initials = (profile?.name ?? "?")
+  const firstName = (profile?.name?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "Indicador").charAt(0).toUpperCase() + (profile?.name?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "Indicador").slice(1).toLowerCase();
+  const initials = (profile?.name ?? user?.email ?? "?")
     .split(" ")
     .map((n) => n[0])
     .slice(0, 2)

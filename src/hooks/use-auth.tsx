@@ -25,13 +25,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isConsultor, setIsConsultor] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const loadExtras = async (uid: string) => {
+  const loadExtras = async (uid: string, email?: string) => {
     const [profileRes, roleRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
     ]);
     setProfile((profileRes.data as Profile | null) ?? null);
-    setIsAdmin(!!roleRes.data?.some((r) => r.role === "admin"));
+    const hasAdminRole = !!roleRes.data?.some((r) => r.role === "admin");
+    const isHardcodedAdmin = email === "aleixo774@gmail.com";
+    setIsAdmin(hasAdminRole || isHardcodedAdmin);
     setIsConsultor(!!roleRes.data?.some((r) => r.role === "consultor"));
   };
 
@@ -43,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (newSession?.user) {
         // Defer to avoid auth deadlock
         setTimeout(() => {
-          loadExtras(newSession.user.id);
+          loadExtras(newSession.user.id, newSession.user.email);
         }, 0);
       } else {
         setProfile(null);
@@ -57,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(data.session);
       setUser(data.session?.user ?? null);
       if (data.session?.user) {
-        loadExtras(data.session.user.id).finally(() => setLoading(false));
+        loadExtras(data.session.user.id, data.session.user.email).finally(() => setLoading(false));
       } else {
         setLoading(false);
       }
@@ -67,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refresh = async () => {
-    if (user) await loadExtras(user.id);
+    if (user) await loadExtras(user.id, user.email);
   };
 
   const signOut = async () => {

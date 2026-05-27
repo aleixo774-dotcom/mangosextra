@@ -2,13 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Check, Loader2, Sparkles } from "lucide-react";
+import { Check, Loader as Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { MangosLogo } from "@/components/mangos-logo";
 import {
   getIndicadorPublic,
   submitPublicReferral,
 } from "@/lib/public-referral.functions";
+import { formatPhone, isValidPhone } from "@/lib/phone-mask";
 
 export const Route = createFileRoute("/r/$indicadorId")({
   head: () => ({
@@ -37,7 +38,7 @@ function PublicReferralPage() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
 
-  const canSubmit = name.trim().length > 2 && phone.trim().length >= 8 && !busy;
+  const canSubmit = name.trim().length > 2 && isValidPhone(phone) && !busy;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -132,11 +133,12 @@ function PublicReferralPage() {
               </span>
               <input
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="(11) 9 9999-9999"
+                onChange={(e) => setPhone(formatPhone(e.target.value))}
+                placeholder="(11) 99999-9999"
                 className="w-full rounded-2xl border border-border bg-card px-4 py-3.5 text-[0.95rem] outline-none focus:border-mango focus:ring-2 focus:ring-mango/30"
                 inputMode="tel"
                 autoComplete="tel"
+                maxLength={15}
               />
             </label>
 
