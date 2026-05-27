@@ -11,26 +11,9 @@ export function MangosLogo({
 }) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <svg
-        viewBox="0 0 400 120"
-        className="h-8 w-auto select-none"
-        aria-label="Mangos"
-        xmlns="http://www.w3.org/2000/svg"
-        draggable={false}
-      >
-        <text
-          x="0"
-          y="80"
-          fontFamily="Arial, Helvetica, sans-serif"
-          fontSize="96"
-          fontWeight="900"
-          fill="#CDFF00"
-          letterSpacing="-4"
-        >
-          mangos
-        </text>
-        <circle cx="390" cy="40" r="15" fill="#CDFF00" />
-      </svg>
+      <span className="font-display text-2xl font-black tracking-tight text-[#CDFF00]">
+        mangos
+      </span>
       {badge && (
         <span
           className={cn(

@@ -80,34 +80,48 @@ function AdminUsuarios() {
 
   async function reload() {
     setLoadingData(true);
-    const [profilesRes, countsRes, rolesRes] = await Promise.all([
-      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-      supabase.from("referrals").select("indicador_id"),
-      supabase.from("user_roles").select("user_id,role"),
-    ]);
-    const counts = new Map<string, number>();
-    ((countsRes.data ?? []) as Array<{ indicador_id: string }>).forEach((r) => {
-      counts.set(r.indicador_id, (counts.get(r.indicador_id) ?? 0) + 1);
-    });
-    const roleMap = new Map<string, Role>();
-    ((rolesRes.data ?? []) as Array<{ user_id: string; role: Role }>).forEach((r) => {
-      // admin > consultor > indicador
-      const cur = roleMap.get(r.user_id);
-      if (!cur || (r.role === "admin") || (r.role === "consultor" && cur === "indicador")) {
-        roleMap.set(r.user_id, r.role);
+    try {
+      const [profilesRes, countsRes, rolesRes] = await Promise.all([
+        supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+        supabase.from("referrals").select("indicador_id"),
+        supabase.from("user_roles").select("user_id,role"),
+      ]);
+
+      if (profilesRes.error) {
+        console.error("[Admin] Erro ao carregar profiles:", profilesRes.error);
+        toast.error(`Erro ao carregar perfis: ${profilesRes.error.message}`);
+        setLoadingData(false);
+        return;
       }
-    });
-    const built: Row[] = ((profilesRes.data ?? []) as Profile[]).map((p) => {
-      const c = counts.get(p.user_id) ?? 0;
-      return {
-        profile: p,
-        refCount: c,
-        presence: presenceOf(p, c),
-        role: roleMap.get(p.user_id) ?? "indicador",
-      };
-    });
-    setRows(built);
-    setLoadingData(false);
+
+      const counts = new Map<string, number>();
+      ((countsRes.data ?? []) as Array<{ indicador_id: string }>).forEach((r) => {
+        counts.set(r.indicador_id, (counts.get(r.indicador_id) ?? 0) + 1);
+      });
+      const roleMap = new Map<string, Role>();
+      ((rolesRes.data ?? []) as Array<{ user_id: string; role: Role }>).forEach((r) => {
+        // admin > consultor > indicador
+        const cur = roleMap.get(r.user_id);
+        if (!cur || (r.role === "admin") || (r.role === "consultor" && cur === "indicador")) {
+          roleMap.set(r.user_id, r.role);
+        }
+      });
+      const built: Row[] = ((profilesRes.data ?? []) as Profile[]).map((p) => {
+        const c = counts.get(p.user_id) ?? 0;
+        return {
+          profile: p,
+          refCount: c,
+          presence: presenceOf(p, c),
+          role: roleMap.get(p.user_id) ?? "indicador",
+        };
+      });
+      setRows(built);
+      setLoadingData(false);
+    } catch (err) {
+      console.error("[Admin] Erro crítico ao recarregar usuários:", err);
+      toast.error("Erro ao carregar dados de usuários");
+      setLoadingData(false);
+    }
   }
 
   useEffect(() => {
